@@ -30,7 +30,7 @@ public static class AppConfiguration
         return services.AddDbContext<HevySyncDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DatabaseConnectionString");
-            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("HeavySync"));
+            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("HevySync"));
         });
     }
 
@@ -42,5 +42,24 @@ public static class AppConfiguration
             .AddEntityFrameworkStores<HevySyncDbContext>();
 
         return services;
+    }
+
+    public static async Task RunPendingMigrations(this WebApplication app)
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HevySyncDbContext>();
+
+            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+            {
+                await dbContext.Database.MigrateAsync();
+                Console.WriteLine($"✅ Applied {pendingMigrations.Count()} pending migrations.");
+            }
+            else
+            {
+                Console.WriteLine("✅ No pending migrations.");
+            }
+        }
     }
 }

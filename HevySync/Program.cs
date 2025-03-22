@@ -21,4 +21,5 @@ app.MapGroup("/hevy").MapHevy();
 
 app.UseHttpsRedirection();
 
+await app.RunPendingMigrations();
 app.Run();

@@ -62,4 +62,18 @@ public static class AppConfiguration
             }
         }
     }
+
+    public static IServiceCollection AddCorsWithPolicy(this IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(
+                b => b.WithOrigins("http://localhost:5173") // Vite's default port
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+                    .WithExposedHeaders("*"));
+        });
+        return services;
+    }
 }

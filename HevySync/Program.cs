@@ -9,9 +9,12 @@ builder.Services.AddAuthorization()
     .AddDataServices(builder.Configuration)
     .AddEndpointsApiExplorer()
     .AddHevyApiClient(builder.Configuration)
-    .AddSwagger();
+    .AddSwagger()
+    .AddCorsWithPolicy();
 
 var app = builder.Build();
+
+app.UseCors();
 
 app.MapIdentityApi<ApplicationUser>();
 

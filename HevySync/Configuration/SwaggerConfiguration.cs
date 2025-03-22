@@ -4,10 +4,10 @@ namespace HevySync.Configuration;
 
 public static class SwaggerConfiguration
 {
-    public static void AddSwagger(
+    public static IServiceCollection AddSwagger(
         this IServiceCollection services)
     {
-        services.AddSwaggerGen(c =>
+        return services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "HevySync API", Version = "v1" });
 

@@ -8,22 +8,28 @@ namespace HevySync.Configuration;
 
 public static class AppConfiguration
 {
-    public static void AddHevyApiClient(this IServiceCollection services, IConfiguration configuration) =>
-
+    public static IServiceCollection AddHevyApiClient(this IServiceCollection services, IConfiguration configuration)
+    {
         services.AddHttpContextAccessor()
             .AddTransient<HevyApiAuthHandler>()
             .AddHttpClient<HevyApiService>(client =>
-                {
-                    client.BaseAddress = new Uri(configuration["ExternalApiUrls:HevyApi"]!);
-                })
+            {
+                client.BaseAddress = new Uri(configuration["ExternalApiUrls:HevyApi"]!);
+            })
             .AddHttpMessageHandler<HevyApiAuthHandler>();
+        
+        return services;
+    }
     
-    public static void AddDataServices(this IServiceCollection services, IConfiguration configuration) =>  
+    public static IServiceCollection AddDataServices(this IServiceCollection services, IConfiguration configuration) =>  
         services.AddDbContext<HevySyncDbContext>(
             options => options.UseInMemoryDatabase("HevySyncDb"));
-    
-    public static void AddIdentityServices(this IServiceCollection services) =>
+
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
+    {
         services.AddIdentityApiEndpoints<ApplicationUser>()
             .AddEntityFrameworkStores<HevySyncDbContext>();
-    
+        
+        return services;
+    }
 }

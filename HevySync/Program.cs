@@ -4,22 +4,18 @@ using HevySync.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthorization();
-builder.Services.AddIdentityServices();
-builder.Services.AddDataServices(builder.Configuration);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHevyApiClient(builder.Configuration);
-builder.Services.AddSwagger();
+builder.Services.AddAuthorization()
+    .AddIdentityServices()
+    .AddDataServices(builder.Configuration)
+    .AddEndpointsApiExplorer()
+    .AddHevyApiClient(builder.Configuration)
+    .AddSwagger();
 
 var app = builder.Build();
 
 app.MapIdentityApi<ApplicationUser>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+if (app.Environment.IsDevelopment()) app.UseSwagger().UseSwaggerUI();
 
 app.MapGroup("/hevy").MapHevy();
 

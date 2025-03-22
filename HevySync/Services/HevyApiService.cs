@@ -1,19 +1,28 @@
+using System.Text.Json;
+using HevySync.Models;
+
 namespace HevySync.Services;
 
-public class HevyApiService
+public class HevyApiService(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    public HevyApiService(HttpClient httpClient)
+    public async Task<HevyApiResponse> GetWorkoutEventsAsync(
+        DateTimeOffset lastWorkoutDateTimeOffset,
+        int page = 1,
+        int pageSize = 5)
     {
-        _httpClient = httpClient;
-    }
- 
-    public async Task<string> GetWorkoutsAsync(int page = 1, int pageSize = 5)
-    {
-        var response = await _httpClient.GetAsync($"workouts?page={page}&pageSize={pageSize}");
+        var since = lastWorkoutDateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Example format
+        var response = await httpClient.GetAsync($"workouts/events?page={page}&pageSize={pageSize}&since={since}");
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadAsStringAsync();
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+
+        var hevyApiResponse = JsonSerializer.Deserialize<HevyApiResponse>(
+            jsonResponse,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+        return hevyApiResponse;
     }
 }

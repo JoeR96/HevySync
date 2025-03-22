@@ -1,6 +1,6 @@
-namespace HevySync.Endpoints;
+namespace HevySync.Endpoints.Requests;
 
-record HevyApiKeyRequest
+internal record HevyApiKeyRequest
 {
     public string HevyApiKey { get; set; } = default!;
 }

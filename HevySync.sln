@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HevySync", "HevySync\HevySync.csproj", "{61F9B3EA-7562-4585-9324-4A1768D09463}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HevySync.Tests", "HevySync.Tests", "{81B268BB-D0A9-4B0A-9D4E-7EFA1B38E9E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HevySync.IntergrationTests", "HevySync.IntergrationTests\HevySync.IntergrationTests.csproj", "{9B92E7D3-5785-4483-87E2-A774CE04344E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,12 @@ Global
 		{61F9B3EA-7562-4585-9324-4A1768D09463}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61F9B3EA-7562-4585-9324-4A1768D09463}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61F9B3EA-7562-4585-9324-4A1768D09463}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B92E7D3-5785-4483-87E2-A774CE04344E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B92E7D3-5785-4483-87E2-A774CE04344E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B92E7D3-5785-4483-87E2-A774CE04344E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B92E7D3-5785-4483-87E2-A774CE04344E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9B92E7D3-5785-4483-87E2-A774CE04344E} = {81B268BB-D0A9-4B0A-9D4E-7EFA1B38E9E9}
 	EndGlobalSection
 EndGlobal

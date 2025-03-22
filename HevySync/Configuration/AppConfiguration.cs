@@ -27,9 +27,13 @@ public static class AppConfiguration
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        return services.AddDbContext<HevySyncDbContext>(
-            options => options.UseInMemoryDatabase("HevySyncDb"));
+        return services.AddDbContext<HevySyncDbContext>(options =>
+        {
+            var connectionString = configuration.GetConnectionString("DatabaseConnectionString");
+            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("HeavySync"));
+        });
     }
+
 
     public static IServiceCollection AddIdentityServices(
         this IServiceCollection services)

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace HevySync.Models;
 
-public class HevyApiResponse
+public record HevyApiResponse
 {
     [JsonPropertyName("page")] public int Page { get; set; }
 

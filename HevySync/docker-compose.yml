@@ -1,0 +1,44 @@
+﻿version: '3.8'
+
+services:
+  hevysync:
+    image: hevysync
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`enjoeneer.dev`) && PathPrefix(`/hevysync-api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - traefik-network
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=hevysync;Username=postgres;Password=postgres
+      - DatabaseConnectionString=Host=postgres;Port=5432;Username=postgres;Password=postgres;Database=hevysync
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hevysync
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - traefik-network
+
+volumes:
+  postgres-data:
+
+networks:
+  traefik-network:
+    external: true
+  app-network:
+    driver: bridge

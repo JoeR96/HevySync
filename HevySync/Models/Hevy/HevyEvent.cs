@@ -2,11 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace HevySync.Models;
 
-public class HevyEvent
+public record HevyEvent
 {
-    [JsonPropertyName("type")]
-    public string Type { get; set; }
+    [JsonPropertyName("type")] public string Type { get; set; }
 
-    [JsonPropertyName("workout")]
-    public HevyWorkout HevyWorkout { get; set; }
+    [JsonPropertyName("workout")] public HevyWorkout HevyWorkout { get; set; }
 }

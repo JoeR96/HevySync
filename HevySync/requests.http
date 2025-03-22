@@ -1,0 +1,7 @@
+POST http://localhost:5189/login
+Content-Type: application/json
+
+{
+  "email": "bigdavetv@bdtv.com",
+  "password": "Stringstring123!"
+}

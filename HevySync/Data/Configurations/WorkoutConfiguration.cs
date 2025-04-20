@@ -1,0 +1,28 @@
+using HevySync.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace HevySync.Data.Configurations;
+
+public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
+{
+    public void Configure(EntityTypeBuilder<
+        Workout> builder)
+    {
+        builder.ToTable("Workouts");
+
+        builder.HasKey(w => w.Id);
+
+        builder.Property(w => w.Name)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.HasMany(w => w.Exercises)
+            .WithOne(e => e.Workout)
+            .HasForeignKey(e => e.WorkoutId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(w => w.ApplicationUserId)
+            .IsRequired();
+    }
+}

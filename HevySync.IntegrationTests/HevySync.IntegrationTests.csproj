@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>HevySync.IntegrationTests</RootNamespace>
+        <PreserveCompilationContext>true</PreserveCompilationContext>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Bogus" Version="35.6.3"/>
+        <PackageReference Include="coverlet.collector" Version="6.0.2"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.4"/>
+        <PackageReference Include="Shouldly" Version="4.3.0"/>
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0"/>
+        <PackageReference Include="xunit" Version="2.9.3"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+        <Using Include="Bogus"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\HevySync\HevySync.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Auth\"/>
+    </ItemGroup>
+
+</Project>

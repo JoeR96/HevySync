@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HevySync", "HevySync\HevySy
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HevySync.Tests", "HevySync.Tests", "{81B268BB-D0A9-4B0A-9D4E-7EFA1B38E9E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HevySync.IntergrationTests", "HevySync.IntergrationTests\HevySync.IntergrationTests.csproj", "{9B92E7D3-5785-4483-87E2-A774CE04344E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HevySync.IntegrationTests", "HevySync.IntegrationTests\HevySync.IntegrationTests.csproj", "{9B92E7D3-5785-4483-87E2-A774CE04344E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{53C15255-86A6-4F34-BF47-35AFB53A95B9}"
 	ProjectSection(SolutionItems) = preProject

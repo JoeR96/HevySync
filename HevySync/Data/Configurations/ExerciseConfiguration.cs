@@ -19,23 +19,21 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.Day)
             .IsRequired();
 
-        builder.Property(e => e.Method)
+        builder.Property(e => e.Order)
             .IsRequired();
 
-        builder.Property(e => e.Category)
+        builder.Property(e => e.ExerciseProgram)
+            .IsRequired();
+
+        builder.Property(e => e.BodyCategory)
             .IsRequired();
 
         builder.Property(e => e.EquipmentType)
             .IsRequired();
 
-        builder.HasOne(e => e.RepsPerSet)
-            .WithOne(r => r.Exercise)
-            .HasForeignKey<RepsPerSet>(r => r.ExerciseId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(e => e.LinearProgression)
-            .WithOne(l => l.Exercise)
-            .HasForeignKey<LinearProgression>(l => l.ExerciseId)
+        builder.HasOne(e => e.ExerciseDetail)
+            .WithOne(ed => ed.Exercise)
+            .HasForeignKey<ExerciseDetail>(ed => ed.ExerciseId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

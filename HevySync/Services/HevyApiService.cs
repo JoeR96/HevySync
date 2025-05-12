@@ -1,5 +1,5 @@
 using System.Text.Json;
-using HevySync.Models;
+using HevySync.Models.Hevy;
 
 namespace HevySync.Services;
 

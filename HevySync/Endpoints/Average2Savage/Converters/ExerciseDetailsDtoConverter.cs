@@ -57,7 +57,6 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
 
         writer.WriteString(ProgramDiscriminator, value.GetType().Name);
 
-        // Write fields based on the specific type of ExerciseDetailDto
         switch (value)
         {
             case LinearProgressionDto linear:

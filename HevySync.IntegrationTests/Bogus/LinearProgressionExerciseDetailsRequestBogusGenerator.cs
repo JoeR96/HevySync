@@ -9,7 +9,7 @@ internal static class LinearProgressionExerciseDetailsRequestBogusGenerator
     {
         return new Faker<LinearProgressionExerciseDetailsRequest>()
             .CustomInstantiator(f => new LinearProgressionExerciseDetailsRequest(
-                f.Random.Decimal(1.0m, 10.0m),
+                Math.Round(f.Random.Decimal(1.0m, 10.0m), 2),
                 f.Random.Number(3, 7),
                 f.PickRandom<ExerciseProgram>(),
                 f.PickRandom<BodyCategory>(),

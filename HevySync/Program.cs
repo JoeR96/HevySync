@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
 using HevySync.Configuration;
 using HevySync.Endpoints.Average2Savage;
+using HevySync.Endpoints.Average2Savage.Converters;
 using HevySync.Endpoints.Hevy;
 using HevySync.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,13 @@ builder.Services.AddAuthorization()
     .AddSwagger()
     .AddCorsWithPolicy();
 
+// Add custom JSON options with converters
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Enum converter
+    options.JsonSerializerOptions.Converters.Add(new ExerciseDetailsRequestConverter()); // Custom converter
+    options.JsonSerializerOptions.Converters.Add(new ExerciseDetailDtoConverter()); // Custom converter
+});
 var app = builder.Build();
 
 app.UseCors();

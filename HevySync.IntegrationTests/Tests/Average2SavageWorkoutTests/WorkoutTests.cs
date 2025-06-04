@@ -37,34 +37,39 @@ public class WorkoutTests(
 
         response!.Exercises.Count.ShouldBe(workoutRequest.Exercises.Count);
         response!.Name.ShouldBe(workoutRequest.WorkoutName);
-        for (var i = 0; i < workoutRequest.Exercises.Count; i++)
-        {
-            var requestExercise = workoutRequest.Exercises[i];
-            var responseExercise = response.Exercises[i];
 
-            responseExercise.ExerciseName.ShouldBe(requestExercise.ExerciseName);
-            responseExercise.Day.ShouldBe(requestExercise.Day);
-
-            switch (responseExercise.ExerciseDetail)
+        var exerciseTasks = workoutRequest.Exercises.Zip(response.Exercises, (request, response) => (request, response))
+            .Select(async exercisePair =>
             {
-                case LinearProgressionDto linearResponse:
-                    var linearRequest = (LinearProgressionExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
-                    linearResponse.WeightProgression.ShouldBe(linearRequest.WeightProgression);
-                    linearResponse.AttemptsBeforeDeload.ShouldBe(linearRequest.AttemptsBeforeDeload);
-                    break;
+                var (requestExercise, responseExercise) = exercisePair;
 
-                case RepsPerSetDto repsResponse:
-                    var repsRequest = (RepsPerSetExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
-                    repsResponse.MinimumReps.ShouldBe(repsRequest.MinimumReps);
-                    repsResponse.TargetReps.ShouldBe(repsRequest.TargetReps);
-                    repsResponse.MaximumTargetReps.ShouldBe(repsRequest.MaximumTargetReps);
-                    repsResponse.NumberOfSets.ShouldBe(repsRequest.NumberOfSets);
-                    repsResponse.TotalNumberOfSets.ShouldBe(repsRequest.TotalNumberOfSets);
-                    break;
+                responseExercise.ExerciseName.ShouldBe(requestExercise.ExerciseName);
+                responseExercise.Day.ShouldBe(requestExercise.Day);
 
-                default:
-                    throw new InvalidOperationException("Unexpected exercise detail type in response.");
-            }
-        }
+                switch (responseExercise.ExerciseDetail)
+                {
+                    case LinearProgressionDto linearResponse:
+                        var linearRequest =
+                            (LinearProgressionExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
+                        linearResponse.WeightProgression.ShouldBe(linearRequest.WeightProgression);
+                        linearResponse.AttemptsBeforeDeload.ShouldBe(linearRequest.AttemptsBeforeDeload);
+                        break;
+
+                    case RepsPerSetDto repsResponse:
+                        var repsRequest = (RepsPerSetExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
+                        repsResponse.MinimumReps.ShouldBe(repsRequest.MinimumReps);
+                        repsResponse.TargetReps.ShouldBe(repsRequest.TargetReps);
+                        repsResponse.MaximumTargetReps.ShouldBe(repsRequest.MaximumTargetReps);
+                        repsResponse.NumberOfSets.ShouldBe(repsRequest.NumberOfSets);
+                        repsResponse.TotalNumberOfSets.ShouldBe(repsRequest.TotalNumberOfSets);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unexpected exercise detail type in response: {responseExercise.ExerciseDetail?.GetType().Name}");
+                }
+            });
+
+        await Task.WhenAll(exerciseTasks);
     }
 }

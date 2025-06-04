@@ -61,7 +61,7 @@ internal static class Average2SavageHandler
                     },
                     LinearProgressionExerciseDetailsRequest linear => new LinearProgression
                     {
-                        WeightProgression = linear.WeightProgression,
+                        WeightProgression = Math.Round(linear.WeightProgression, 2),
                         AttemptsBeforeDeload = linear.AttemptsBeforeDeload
                     },
                     _ => null
@@ -71,7 +71,6 @@ internal static class Average2SavageHandler
 
         dbContext.Workouts.Add(workout);
         await dbContext.SaveChangesAsync();
-
 
         var workoutDto = new WorkoutDto
         {
@@ -87,12 +86,14 @@ internal static class Average2SavageHandler
                 {
                     LinearProgression lp => new LinearProgressionDto
                     {
+                        Program = ExerciseProgram.Average2SavageHypertrophy,
                         Id = lp.Id,
                         WeightProgression = lp.WeightProgression,
-                        AttemptsBeforeDeload = lp.AttemptsBeforeDeload,
+                        AttemptsBeforeDeload = lp.AttemptsBeforeDeload
                     },
                     RepsPerSet rps => new RepsPerSetDto
                     {
+                        Program = ExerciseProgram.Average2SavageHypertrophy,
                         Id = rps.Id,
                         MinimumReps = rps.MinimumReps,
                         TargetReps = rps.TargetReps,

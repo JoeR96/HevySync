@@ -1,3 +1,5 @@
+using HevySync.Endpoints.Average2Savage.Enums;
+
 namespace HevySync.Endpoints.Average2Savage.Responses;
 
 public record ExerciseDto

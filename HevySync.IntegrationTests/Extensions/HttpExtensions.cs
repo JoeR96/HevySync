@@ -1,7 +1,5 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using HevySync.Endpoints.Average2Savage.Converters;
 
 namespace HevySync.IntegrationTests.Extensions;
 
@@ -38,9 +36,6 @@ public static class HttpExtensions
     private static JsonSerializerOptions GetDefaultJsonSerializerOptions()
     {
         var defaultJsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        defaultJsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        defaultJsonSerializerOptions.Converters.Add(new ExerciseDetailsRequestConverter());
-        defaultJsonSerializerOptions.Converters.Add(new ExerciseDetailDtoConverter());
         return defaultJsonSerializerOptions;
     }
 }

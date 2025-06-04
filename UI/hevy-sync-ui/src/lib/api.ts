@@ -11,7 +11,6 @@ const api = axios.create({
   withCredentials: true
 })
 
-// Add token to requests if it exists
 api.interceptors.request.use(
   (config) => {
     const token = useAuth.getState().token
@@ -25,7 +24,6 @@ api.interceptors.request.use(
   }
 )
 
-// Add a response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {

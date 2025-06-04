@@ -10,7 +10,7 @@ public class HevyApiService(HttpClient httpClient)
         int page = 1,
         int pageSize = 5)
     {
-        var since = lastWorkoutDateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Example format
+        var since = lastWorkoutDateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ");
         var response = await httpClient.GetAsync($"workouts/events?page={page}&pageSize={pageSize}&since={since}");
         response.EnsureSuccessStatusCode();
 

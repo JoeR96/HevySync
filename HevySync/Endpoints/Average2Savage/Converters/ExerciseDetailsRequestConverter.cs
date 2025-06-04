@@ -39,7 +39,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
             root.GetProperty("MaximumTargetReps").GetInt32(),
             root.GetProperty("NumberOfSets").GetInt32(),
             root.GetProperty("TotalNumberOfSets").GetInt32(),
-            ExerciseProgram.Average2SavageRepsPerSet // Hardcoded to ensure consistency
+            ExerciseProgram.Average2SavageRepsPerSet
         );
     }
 
@@ -49,7 +49,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
         return new LinearProgressionExerciseDetailsRequest(
             root.GetProperty("WeightProgression").GetDecimal(),
             root.GetProperty("AttemptsBeforeDeload").GetInt32(),
-            ExerciseProgram.Average2SavageHypertrophy, // Hardcoded to ensure consistency
+            ExerciseProgram.Average2SavageHypertrophy,
             Enum.Parse<BodyCategory>(root.GetProperty("BodyCategory").GetString() ?? string.Empty),
             Enum.Parse<EquipmentType>(root.GetProperty("EquipmentType").GetString() ?? string.Empty)
         );
@@ -59,12 +59,10 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
     {
         writer.WriteStartObject();
 
-        // Write the discriminator field
         writer.WriteString(ProgramDiscriminator, value is RepsPerSetExerciseDetailsRequest
             ? nameof(ExerciseProgram.Average2SavageRepsPerSet)
             : nameof(ExerciseProgram.Average2SavageHypertrophy));
 
-        // Write fields based on the specific type of ExerciseDetailsRequest
         switch (value)
         {
             case RepsPerSetExerciseDetailsRequest reps:

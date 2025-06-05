@@ -50,7 +50,7 @@ public static class AppConfiguration
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<HevySyncDbContext>();
 
-            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+            var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync()).ToArray();
             if (pendingMigrations.Any())
             {
                 await dbContext.Database.MigrateAsync();
@@ -68,7 +68,7 @@ public static class AppConfiguration
         services.AddCors(options =>
         {
             options.AddDefaultPolicy(
-                b => b.WithOrigins("http://localhost:5173") // Vite's default port
+                b => b.WithOrigins("http://localhost:5173")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()

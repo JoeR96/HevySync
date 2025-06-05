@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HevySync.Models;
+namespace HevySync.Models.Hevy;
 
 public record HevyApiResponse
 {

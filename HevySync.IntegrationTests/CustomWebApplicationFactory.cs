@@ -71,7 +71,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 {
                     Id = UserHelper.UserId,
                     UserName = "TestUser",
-                    Email = "testuser@example.com"
+                    Email = "testuser@example.com",
+                    SecurityStamp = Guid.NewGuid().ToString()
                 });
                 dbContext.SaveChanges();
             }

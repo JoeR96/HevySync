@@ -24,8 +24,8 @@ services:
       RESHARPER_LOG_CONF: "/etc/opt/rider-debugger/backend-log.xml"
     image: "hevysync:dev"
     ports:
-    - "127.0.0.1:57009:57100"
-    - "127.0.0.1:57209:57300"
+    - "127.0.0.1:57010:57100"
+    - "127.0.0.1:52855:57300"
     volumes:
     - "C:\\Users\\Administrator\\.nuget\\packages:/home/app/.nuget/packages"
     - "C:\\Users\\Administrator\\RiderProjects\\HevyToAverage2Savage\\HevySync:/app:rw"
@@ -34,5 +34,5 @@ services:
       2024.2.6\\Linux64:/opt/rider-debugger"
     - "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Rider\\bin:/etc/opt/rider-debugger/backend-log.xml"
     - "C:\\Users\\Administrator\\AppData\\Local\\JetBrains\\Rider2024.2\\log\\DebuggerWorker\\\
-      JetBrains.Debugger.Worker.2025_5_13_00_17_02:/var/opt/rider-debugger:rw"
+      JetBrains.Debugger.Worker.2025_6_07_19_56_40:/var/opt/rider-debugger:rw"
     working_dir: "/app"

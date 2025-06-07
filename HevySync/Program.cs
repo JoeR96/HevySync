@@ -1,3 +1,5 @@
+using FluentValidation.AspNetCore;
+using HevySync;
 using HevySync.Configuration;
 using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Hevy;
@@ -8,10 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthorization()
     .AddIdentityServices()
     .AddDataServices(builder.Configuration)
-    .AddEndpointsApiExplorer()
     .AddHevyApiClient(builder.Configuration)
     .AddSwagger()
-    .AddCorsWithPolicy();
+    .AddCorsWithPolicy()
+    .AddEndpointsApiExplorer()
+    .AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AssemblyMarker>());
 
 var app = builder.Build();
 

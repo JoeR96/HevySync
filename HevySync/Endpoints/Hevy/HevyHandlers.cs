@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using FluentValidation;
 using HevySync.Endpoints.Hevy.Requests;
+using HevySync.Endpoints.Responses;
 using HevySync.Identity;
 using HevySync.Services;
 using Microsoft.AspNetCore.Identity;
@@ -17,15 +19,29 @@ internal static class HevyHandlers
         return routes;
     }
 
-    private static async Task<IResult> PostHevyKey(
+    public static async Task<IResult> PostHevyKey(
         UserManager<ApplicationUser> userManager,
         ClaimsPrincipal userPrincipal,
-        HevyApiKeyRequest heavyApiKeyRequest)
+        HevyApiKeyRequest hevyApiKeyRequest,
+        IValidator<HevyApiKeyRequest> validator)
     {
+        var validationResult = await validator.ValidateAsync(hevyApiKeyRequest);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => new ValidationError
+            {
+                Property = e.PropertyName,
+                Message = e.ErrorMessage
+            }).ToList();
+
+            return Results.BadRequest(new ValidationErrorResponse(errors));
+        }
+
         var user = await userManager.GetUserAsync(userPrincipal);
         if (user == null) return Results.Unauthorized();
 
-        user.HevyApiKey = heavyApiKeyRequest.HevyApiKey;
+        user.HevyApiKey = hevyApiKeyRequest.HevyApiKey;
 
         await userManager.UpdateAsync(user);
 

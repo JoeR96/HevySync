@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FluentValidation;
 using HevySync.Data;
 using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
@@ -22,14 +23,24 @@ internal static class Average2SavageHandler
     private static async Task<IResult> PostAverage2Savage(
         ClaimsPrincipal userPrincipal,
         UserManager<ApplicationUser> userManager,
+        [FromServices] IValidator<CreateWorkoutRequest> validator,
         [FromBody] CreateWorkoutRequest request,
         [FromServices] HevySyncDbContext dbContext)
     {
         var user = await userManager.GetUserAsync(userPrincipal);
 
-        //todo: validate request using fluent validation
-        if (string.IsNullOrEmpty(request.WorkoutName) ||
-            !request.Exercises.Any()) return Results.BadRequest("Invalid Workout Request.");
+        var validationResult = await validator.ValidateAsync(request);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => new ValidationError
+            {
+                Property = e.PropertyName,
+                Message = e.ErrorMessage
+            }).ToList();
+
+            return Results.BadRequest(new ValidationErrorResponse(errors));
+        }
 
         var workout = new Workout
         {

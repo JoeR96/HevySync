@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useAuth } from './auth'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'http://localhost:8080'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -98,7 +98,7 @@ const handleLogout = () => {
 
 const handleLogin = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+    const response = await axios.post(`${API_BASE_URL}/login`, {
       email,
       password,
     });

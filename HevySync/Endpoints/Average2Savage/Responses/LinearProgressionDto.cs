@@ -9,4 +9,5 @@ public record LinearProgressionDto : ExerciseDetailDto
     public BodyCategory BodyCategory { get; set; }
     public EquipmentType EquipmentType { get; set; }
     public ExerciseProgram Program { get; set; }
+    public decimal TrainingMax { get; set; }
 }

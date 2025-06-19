@@ -23,6 +23,14 @@ public static class AppConfiguration
         return services;
     }
 
+    public static IServiceCollection AddDomainServices(
+        this IServiceCollection services)
+    {
+        return services.AddScoped<WorkoutService>()
+            .AddScoped<HypertrophyService>()
+            .AddScoped<RepsService>();
+    }
+
     public static IServiceCollection AddDataServices(
         this IServiceCollection services,
         IConfiguration configuration)

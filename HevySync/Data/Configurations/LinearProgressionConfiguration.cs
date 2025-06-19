@@ -18,5 +18,8 @@ public class LinearProgressionConfiguration : IEntityTypeConfiguration<LinearPro
 
         builder.Property(l => l.AttemptsBeforeDeload)
             .IsRequired();
+
+        builder.Property(l => l.TrainingMax)
+            .IsRequired();
     }
 }

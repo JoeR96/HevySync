@@ -9,9 +9,10 @@ internal static class LinearProgressionExerciseDetailsRequestBogusGenerator
     {
         return new Faker<LinearProgressionExerciseDetailsRequest>()
             .CustomInstantiator(f => new LinearProgressionExerciseDetailsRequest(
+                100.00m,
                 Math.Round(f.Random.Decimal(1.0m, 10.0m), 2),
                 f.Random.Number(3, 7),
-                f.PickRandom<ExerciseProgram>(),
+                ExerciseProgram.Average2SavageHypertrophy,
                 f.PickRandom<BodyCategory>(),
                 f.PickRandom<EquipmentType>()
             ));

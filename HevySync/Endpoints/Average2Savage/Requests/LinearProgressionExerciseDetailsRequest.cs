@@ -4,6 +4,7 @@ using HevySync.Endpoints.Average2Savage.Enums;
 namespace HevySync.Endpoints.Average2Savage.Requests;
 
 public record LinearProgressionExerciseDetailsRequest(
+    decimal TrainingMax,
     decimal WeightProgression,
     int AttemptsBeforeDeload,
     ExerciseProgram Program,
@@ -16,6 +17,12 @@ public class
 {
     public LinearProgressionExerciseDetailsRequestValidator()
     {
+        RuleFor(x => x.TrainingMax)
+            .GreaterThan(0)
+            .NotEmpty()
+            .NotNull()
+            .WithMessage("Working weight must be greater than 0.");
+
         RuleFor(x => x.WeightProgression)
             .GreaterThan(0)
             .WithMessage("Weight progression must be greater than 0.");

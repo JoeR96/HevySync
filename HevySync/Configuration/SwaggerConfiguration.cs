@@ -35,6 +35,14 @@ public static class SwaggerConfiguration
                     []
                 }
             });
+
+            c.DocInclusionPredicate((docName, apiDesc) =>
+            {
+                // Exclude endpoints with routing patterns related to Identity
+                return !apiDesc.RelativePath.StartsWith("connect", StringComparison.OrdinalIgnoreCase)
+                       && !apiDesc.RelativePath.StartsWith("Account", StringComparison.OrdinalIgnoreCase)
+                       && !apiDesc.RelativePath.StartsWith("Identity", StringComparison.OrdinalIgnoreCase);
+            });
         });
     }
 }

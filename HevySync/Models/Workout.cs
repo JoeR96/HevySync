@@ -11,4 +11,5 @@ public class Workout
     public string Name { get; set; }
     public Guid ApplicationUserId { get; set; }
     public ICollection<Exercise> Exercises { get; set; }
+    public WorkoutActivity WorkoutActivity { get; set; }
 }

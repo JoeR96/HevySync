@@ -15,17 +15,13 @@ using Testcontainers.PostgreSql;
 
 namespace HevySync.IntegrationTests;
 
-public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestAuthHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    ISystemClock clock)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
 {
-    public TestAuthHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        ISystemClock clock)
-        : base(options, logger, encoder, clock)
-    {
-    }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var claims = new[]
@@ -61,21 +57,20 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 })
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
 
-            using (var scope = services.BuildServiceProvider().CreateScope())
+            using var scope = services.BuildServiceProvider().CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<HevySyncDbContext>();
+
+            dbContext.Database.Migrate();
+
+            dbContext.Users.Add(new ApplicationUser
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<HevySyncDbContext>();
-
-                dbContext.Database.Migrate();
-
-                dbContext.Users.Add(new ApplicationUser
-                {
-                    Id = UserHelper.UserId,
-                    UserName = "TestUser",
-                    Email = "testuser@example.com",
-                    SecurityStamp = Guid.NewGuid().ToString()
-                });
-                dbContext.SaveChanges();
-            }
+                Id = UserHelper.UserId,
+                UserName = "TestUser",
+                Email = "testuser@example.com",
+                SecurityStamp = Guid.NewGuid().ToString(),
+                HevyApiKey = "bbc441b6-532e-4574-91c4-41b227f9f044"
+            });
+            dbContext.SaveChanges();
         });
     }
 

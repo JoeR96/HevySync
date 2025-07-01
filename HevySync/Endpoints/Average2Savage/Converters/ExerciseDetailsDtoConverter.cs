@@ -46,8 +46,8 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
             MinimumReps = root.GetProperty(nameof(RepsPerSetDto.MinimumReps)).GetInt32(),
             TargetReps = root.GetProperty(nameof(RepsPerSetDto.TargetReps)).GetInt32(),
             MaximumTargetReps = root.GetProperty(nameof(RepsPerSetDto.MaximumTargetReps)).GetInt32(),
-            NumberOfSets = root.GetProperty(nameof(RepsPerSetDto.NumberOfSets)).GetInt32(),
-            TotalNumberOfSets = root.GetProperty(nameof(RepsPerSetDto.TotalNumberOfSets)).GetInt32()
+            StartingSetCount = root.GetProperty(nameof(RepsPerSetDto.StartingSetCount)).GetInt32(),
+            TargetSetCount = root.GetProperty(nameof(RepsPerSetDto.TargetSetCount)).GetInt32()
         };
     }
 
@@ -63,6 +63,7 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
                 writer.WriteString(nameof(linear.Id), linear.Id.ToString());
                 writer.WriteNumber(nameof(linear.WeightProgression), (double)linear.WeightProgression);
                 writer.WriteNumber(nameof(linear.AttemptsBeforeDeload), linear.AttemptsBeforeDeload);
+                writer.WriteNumber(nameof(linear.TrainingMax), (double)linear.TrainingMax);
                 break;
 
             case RepsPerSetDto reps:
@@ -70,8 +71,8 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
                 writer.WriteNumber(nameof(reps.MinimumReps), reps.MinimumReps);
                 writer.WriteNumber(nameof(reps.TargetReps), reps.TargetReps);
                 writer.WriteNumber(nameof(reps.MaximumTargetReps), reps.MaximumTargetReps);
-                writer.WriteNumber(nameof(reps.NumberOfSets), reps.NumberOfSets);
-                writer.WriteNumber(nameof(reps.TotalNumberOfSets), reps.TotalNumberOfSets);
+                writer.WriteNumber(nameof(reps.StartingSetCount), reps.StartingSetCount);
+                writer.WriteNumber(nameof(reps.TargetSetCount), reps.TargetSetCount);
                 break;
 
             default:

@@ -27,7 +27,8 @@ public class WorkoutTests(
         var workoutRequest = new CreateWorkoutRequest
         {
             WorkoutName = "Test Workout",
-            Exercises = exerciseRequestsFaker
+            Exercises = exerciseRequestsFaker,
+            WorkoutDaysInWeek = 5
         };
 
         var endpoint = Average2SavageEndpoint.Workout.GetFullRoutePath();
@@ -46,6 +47,7 @@ public class WorkoutTests(
 
                 responseExercise.ExerciseName.ShouldBe(requestExercise.ExerciseName);
                 responseExercise.Day.ShouldBe(requestExercise.Day);
+                responseExercise.RestTimer.ShouldBe(requestExercise.RestTimer);
 
                 switch (responseExercise.ExerciseDetail)
                 {
@@ -61,8 +63,8 @@ public class WorkoutTests(
                         repsResponse.MinimumReps.ShouldBe(repsRequest.MinimumReps);
                         repsResponse.TargetReps.ShouldBe(repsRequest.TargetReps);
                         repsResponse.MaximumTargetReps.ShouldBe(repsRequest.MaximumTargetReps);
-                        repsResponse.NumberOfSets.ShouldBe(repsRequest.NumberOfSets);
-                        repsResponse.TotalNumberOfSets.ShouldBe(repsRequest.TotalNumberOfSets);
+                        repsResponse.StartingSetCount.ShouldBe(repsRequest.NumberOfSets);
+                        repsResponse.TargetSetCount.ShouldBe(repsRequest.TotalNumberOfSets);
                         break;
 
                     default:
@@ -229,6 +231,7 @@ public class WorkoutTests(
                 Day = 0,
                 Order = 1,
                 ExerciseDetailsRequest = new LinearProgressionExerciseDetailsRequest(
+                    25m,
                     -5m,
                     3,
                     ExerciseProgram.Average2SavageHypertrophy,

@@ -6,6 +6,7 @@ public record CreateWorkoutRequest
 {
     public string WorkoutName { get; set; }
     public List<ExerciseRequest> Exercises { get; set; }
+    public int WorkoutDaysInWeek { get; set; }
 }
 
 public class CreateWorkoutRequestValidator : AbstractValidator<CreateWorkoutRequest>

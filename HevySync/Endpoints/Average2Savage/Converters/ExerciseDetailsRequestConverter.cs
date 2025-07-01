@@ -47,6 +47,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
         JsonSerializerOptions options)
     {
         return new LinearProgressionExerciseDetailsRequest(
+            root.GetProperty("TrainingMax").GetDecimal(),
             root.GetProperty("WeightProgression").GetDecimal(),
             root.GetProperty("AttemptsBeforeDeload").GetInt32(),
             ExerciseProgram.Average2SavageHypertrophy,
@@ -74,6 +75,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
                 break;
 
             case LinearProgressionExerciseDetailsRequest linear:
+                writer.WriteNumber(nameof(linear.TrainingMax), (double)linear.TrainingMax);
                 writer.WriteNumber(nameof(linear.WeightProgression), (double)linear.WeightProgression);
                 writer.WriteNumber(nameof(linear.AttemptsBeforeDeload), linear.AttemptsBeforeDeload);
                 writer.WriteString(nameof(linear.BodyCategory), linear.BodyCategory.ToString());

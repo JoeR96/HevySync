@@ -1,4 +1,5 @@
 using HevySync.Data;
+using HevySync.Facades;
 using HevySync.Handlers;
 using HevySync.Identity;
 using HevySync.Services;
@@ -21,6 +22,15 @@ public static class AppConfiguration
             .AddHttpMessageHandler<HevyApiAuthHandler>();
 
         return services;
+    }
+
+    public static IServiceCollection AddDomainServices(
+        this IServiceCollection services)
+    {
+        return services.AddScoped<WorkoutService>()
+            .AddScoped<IA2SWorkoutFacade, A2SWorkoutFacade>()
+            .AddScoped<HypertrophyService>()
+            .AddScoped<RepsPerSetService>();
     }
 
     public static IServiceCollection AddDataServices(
@@ -67,12 +77,11 @@ public static class AppConfiguration
     {
         services.AddCors(options =>
         {
-            options.AddDefaultPolicy(
-                b => b.WithOrigins("http://localhost:5173")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
-                    .WithExposedHeaders("*"));
+            options.AddDefaultPolicy(b => b.WithOrigins("http://localhost:5173")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .WithExposedHeaders("*"));
         });
         return services;
     }

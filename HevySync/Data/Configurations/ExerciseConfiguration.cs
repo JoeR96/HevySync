@@ -12,6 +12,16 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
         builder.HasKey(e => e.Id);
 
+        builder.Property(e => e.ExerciseTemplateId)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(e => e.NumberOfSets)
+            .IsRequired();
+
+        builder.Property(e => e.RestTimer)
+            .IsRequired();
+
         builder.Property(e => e.ExerciseName)
             .IsRequired()
             .HasMaxLength(100);
@@ -29,6 +39,9 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
             .IsRequired();
 
         builder.Property(e => e.EquipmentType)
+            .IsRequired();
+
+        builder.Property(e => e.NumberOfSets)
             .IsRequired();
 
         builder.HasOne(e => e.ExerciseDetail)

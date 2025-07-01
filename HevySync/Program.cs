@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthorization()
     .AddIdentityServices()
+    .AddDomainServices()
     .AddDataServices(builder.Configuration)
     .AddHevyApiClient(builder.Configuration)
     .AddSwagger()

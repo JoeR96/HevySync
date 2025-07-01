@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HevySync.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -177,11 +177,15 @@ namespace HevySync.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ExerciseName = table.Column<string>(type: "text", nullable: false),
+                    ExerciseTemplateId = table.Column<string>(type: "text", nullable: false),
+                    RestTimer = table.Column<int>(type: "integer", nullable: false),
                     Day = table.Column<int>(type: "integer", nullable: false),
                     ExerciseProgram = table.Column<int>(type: "integer", nullable: false),
                     BodyCategory = table.Column<int>(type: "integer", nullable: false),
                     EquipmentType = table.Column<int>(type: "integer", nullable: false),
-                    WorkoutId = table.Column<Guid>(type: "uuid", nullable: false)
+                    WorkoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    NumberOfSets = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -195,19 +199,43 @@ namespace HevySync.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "WorkoutActivity",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Week = table.Column<int>(type: "integer", nullable: false),
+                    Day = table.Column<int>(type: "integer", nullable: false),
+                    WorkoutsInWeek = table.Column<int>(type: "integer", nullable: false),
+                    WorkoutId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkoutActivity", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkoutActivity_Workouts_WorkoutId",
+                        column: x => x.WorkoutId,
+                        principalTable: "Workouts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExerciseDetail",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ExerciseId = table.Column<Guid>(type: "uuid", nullable: false),
                     Program = table.Column<string>(type: "text", nullable: false),
+                    TrainingMax = table.Column<decimal>(type: "numeric", nullable: true),
                     WeightProgression = table.Column<decimal>(type: "numeric", nullable: true),
                     AttemptsBeforeDeload = table.Column<int>(type: "integer", nullable: true),
+                    Primary = table.Column<bool>(type: "boolean", nullable: true),
+                    WorkingWeight = table.Column<decimal>(type: "numeric", nullable: true),
                     MinimumReps = table.Column<int>(type: "integer", nullable: true),
                     TargetReps = table.Column<int>(type: "integer", nullable: true),
                     MaximumTargetReps = table.Column<int>(type: "integer", nullable: true),
-                    NumberOfSets = table.Column<int>(type: "integer", nullable: true),
-                    TotalNumberOfSets = table.Column<int>(type: "integer", nullable: true)
+                    StartingSetCount = table.Column<int>(type: "integer", nullable: true),
+                    TargetSetCount = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -267,6 +295,12 @@ namespace HevySync.Migrations
                 table: "ExerciseDetail",
                 column: "ExerciseId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkoutActivity_WorkoutId",
+                table: "WorkoutActivity",
+                column: "WorkoutId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -289,6 +323,9 @@ namespace HevySync.Migrations
 
             migrationBuilder.DropTable(
                 name: "ExerciseDetail");
+
+            migrationBuilder.DropTable(
+                name: "WorkoutActivity");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

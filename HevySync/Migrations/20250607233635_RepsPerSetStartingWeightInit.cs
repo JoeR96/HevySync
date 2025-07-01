@@ -5,25 +5,24 @@
 namespace HevySync.Migrations
 {
     /// <inheritdoc />
-    public partial class ExerciseOrder : Migration
+    public partial class RepsPerSetStartingWeightInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Order",
-                table: "Exercise",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.AddColumn<decimal>(
+                name: "StartingWeight",
+                table: "ExerciseDetail",
+                type: "numeric",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Order",
-                table: "Exercise");
+                name: "StartingWeight",
+                table: "ExerciseDetail");
         }
     }
 }

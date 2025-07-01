@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HevySync.Migrations
 {
     [DbContext(typeof(HevySyncDbContext))]
-    [Migration("20250512233516_ExerciseOrder")]
-    partial class ExerciseOrder
+    [Migration("20250607230634_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -116,7 +116,17 @@ namespace HevySync.Migrations
                     b.Property<int>("ExerciseProgram")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ExerciseTemplateId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("NumberOfSets")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RestTimer")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("WorkoutId")
@@ -170,6 +180,32 @@ namespace HevySync.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Workouts");
+                });
+
+            modelBuilder.Entity("HevySync.Models.WorkoutActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Week")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("WorkoutsInWeek")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkoutId")
+                        .IsUnique();
+
+                    b.ToTable("WorkoutActivity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -309,7 +345,16 @@ namespace HevySync.Migrations
                     b.Property<int>("AttemptsBeforeDeload")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Primary")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("TrainingMax")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("WeightProgression")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("WorkingWeight")
                         .HasColumnType("numeric");
 
                     b.HasDiscriminator().HasValue("Average2SavageHypertrophy");
@@ -325,13 +370,13 @@ namespace HevySync.Migrations
                     b.Property<int>("MinimumReps")
                         .HasColumnType("integer");
 
-                    b.Property<int>("NumberOfSets")
+                    b.Property<int>("StartingSetCount")
                         .HasColumnType("integer");
 
                     b.Property<int>("TargetReps")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TotalNumberOfSets")
+                    b.Property<int>("TargetSetCount")
                         .HasColumnType("integer");
 
                     b.HasDiscriminator().HasValue("Average2SavageRepsPerSet");
@@ -357,6 +402,17 @@ namespace HevySync.Migrations
                         .IsRequired();
 
                     b.Navigation("Exercise");
+                });
+
+            modelBuilder.Entity("HevySync.Models.WorkoutActivity", b =>
+                {
+                    b.HasOne("HevySync.Models.Workout", "Workout")
+                        .WithOne("WorkoutActivity")
+                        .HasForeignKey("HevySync.Models.WorkoutActivity", "WorkoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workout");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -419,6 +475,9 @@ namespace HevySync.Migrations
             modelBuilder.Entity("HevySync.Models.Workout", b =>
                 {
                     b.Navigation("Exercises");
+
+                    b.Navigation("WorkoutActivity")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

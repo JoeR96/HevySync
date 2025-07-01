@@ -22,7 +22,30 @@ public class WorkoutConfiguration : IEntityTypeConfiguration<Workout>
             .HasForeignKey(e => e.WorkoutId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(w => w.WorkoutActivity)
+            .WithOne(wa => wa.Workout)
+            .HasForeignKey<WorkoutActivity>(wa => wa.WorkoutId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Property(w => w.ApplicationUserId)
             .IsRequired();
+    }
+}
+
+public class WorkoutActivityConfiguration : IEntityTypeConfiguration<WorkoutActivity>
+{
+    public void Configure(EntityTypeBuilder<WorkoutActivity> builder)
+    {
+        builder.ToTable("WorkoutActivities");
+
+        builder.HasKey(w => w.Id);
+
+        builder.Property(w => w.Week)
+            .IsRequired();
+
+        builder.HasOne(wa => wa.Workout)
+            .WithOne(w => w.WorkoutActivity)
+            .HasForeignKey<WorkoutActivity>(wa => wa.WorkoutId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

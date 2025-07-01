@@ -39,5 +39,7 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::9B92E7D3-5785-4483-87E2-A774CE04344E::net9.0::HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests.WorkoutTests.CreateWorkout&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::9B92E7D3-5785-4483-87E2-A774CE04344E::net9.0::HevySync.IntegrationTests.Tests.HevyTests.HevyTests.SetKey&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::9B92E7D3-5785-4483-87E2-A774CE04344E::net9.0::HevySync.IntegrationTests.Tests.HevyTests.HevyTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::9B92E7D3-5785-4483-87E2-A774CE04344E::net9.0::HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests.WorkoutTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

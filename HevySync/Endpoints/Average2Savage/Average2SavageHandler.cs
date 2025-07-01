@@ -140,6 +140,7 @@ internal static class Average2SavageHandler
             {
                 WorkoutId = workout.Id
             });
+            
             return Results.Ok(routines);
         }
         catch (Exception e)

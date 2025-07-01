@@ -14,7 +14,11 @@ public class WorkoutService(
     public async Task<List<RoutineResponse>> CreateHevyWorkoutWeekOneAsync(
         SyncHevyWorkoutsRequest syncHevyWorkoutsRequest)
     {
-        var workout = await dbContext.Workouts.Where(w => w.Id == syncHevyWorkoutsRequest.WorkoutId)`.FirstOrDefaultAsync();
+        var workout = await dbContext.Workouts
+            .Where(w => w.Id == syncHevyWorkoutsRequest.WorkoutId)
+            .Include(workout => workout.WorkoutActivity)
+            .Include(workout => workout.Exercises)
+            .FirstOrDefaultAsync();
 
         var workoutActivity = workout.WorkoutActivity;
 
@@ -53,19 +57,15 @@ public class WorkoutService(
                 Routine = new Routine
                 {
                     Notes = $"Week {workoutActivity.Week} of the Average2Savage routine - Day {day}",
-                    FolderId = Average2SavageFolder, // Assuming this is a predefined folder ID
+                    FolderId = Average2SavageFolder,
                     Title =
-                        $"Average2Savage Week {workoutActivity.Week} Day {day}", // Customize based on current week and day
-                    Exercises = exercises // List of exercises for the specific day
+                        $"Average2Savage Week {workoutActivity.Week} Day {day}",
+                    Exercises = exercises
                 }
             };
 
-            Console.WriteLine($"Creating routine for Day {day}...");
-
-            // Asynchronously call the Hevy API service to create the routine
             var response = await hevyApiService.CreateRoutineAsync(routineRequest);
             routineExercises.Add(response);
-            Console.WriteLine($"Routine for Day {day} successfully created! Title: {routineRequest.Routine.Title}");
         }
 
         return routineExercises;

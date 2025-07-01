@@ -3,11 +3,10 @@ using HevySync.Models.Exercises;
 
 namespace HevySync.Services;
 
-public class RepsService
+public class RepsPerSetService
 {
     public async Task<List<RoutineSet>> CreateRoutineWeekOneSetsAsync(
-        RepsPerSet exercise,
-        WorkoutActivity workoutActivity)
+        RepsPerSet exercise)
     {
         var sets = new List<RoutineSet>();
         for (var i = 0; i < exercise.StartingSetCount; i++)

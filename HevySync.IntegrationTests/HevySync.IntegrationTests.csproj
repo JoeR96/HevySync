@@ -29,8 +29,4 @@
         <ProjectReference Include="..\HevySync\HevySync.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Auth\"/>
-    </ItemGroup>
-
 </Project>

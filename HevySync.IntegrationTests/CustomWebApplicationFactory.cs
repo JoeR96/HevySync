@@ -41,7 +41,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 UserName = "TestUser",
                 Email = "testuser@example.com",
                 SecurityStamp = Guid.NewGuid().ToString(),
-                HevyApiKey = "bbc441b6-532e-4574-91c4-41b227f9f044"
+                HevyApiKey = Guid.NewGuid().ToString()
             });
             dbContext.SaveChanges();
         });

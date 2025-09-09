@@ -11,5 +11,13 @@ public class WorkoutActivity
     public int Day { get; set; } = 1;
     public int WorkoutsInWeek { get; set; }
     public Guid WorkoutId { get; set; }
-    public Workout Workout { get; set; }
+}
+
+public record WorkoutActivityDto
+{
+    public Guid Id { get; set; }
+    public int Week { get; set; }
+    public int Day { get; set; }
+    public int WorkoutsInWeek { get; set; }
+    public Guid WorkoutId { get; set; }
 }

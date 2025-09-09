@@ -7,5 +7,5 @@ public record WorkoutDto
     public Guid Id { get; set; }
     public string Name { get; set; }
     public List<ExerciseDto> Exercises { get; set; }
-    public WorkoutActivity WorkoutActivity { get; set; }
+    public WorkoutActivityDto WorkoutActivity { get; set; }
 }

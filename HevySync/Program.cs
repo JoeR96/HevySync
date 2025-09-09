@@ -15,8 +15,7 @@ builder.Services.AddAuthorization()
     .AddSwagger()
     .AddCorsWithPolicy()
     .AddEndpointsApiExplorer()
-    .AddControllers()
-    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AssemblyMarker>());
+    .AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AssemblyMarker>());
 
 var app = builder.Build();
 

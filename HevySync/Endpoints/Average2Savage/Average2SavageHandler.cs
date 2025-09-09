@@ -38,7 +38,6 @@ internal static class Average2SavageHandler
 
             if (!validationResult.IsValid)
             {
-                
                 var errors = validationResult.Errors.Select(e => new ValidationError
                 {
                     Property = e.PropertyName,
@@ -51,7 +50,7 @@ internal static class Average2SavageHandler
             var workout = new Workout
             {
                 Name = request.WorkoutName,
-                ApplicationUserId = user.Id,    
+                ApplicationUserId = user.Id,
                 WorkoutActivity = new WorkoutActivity
                 {
                     Week = 1,
@@ -73,6 +72,7 @@ internal static class Average2SavageHandler
                     EquipmentType = exerciseRequest.ExerciseDetailsRequest is LinearProgressionExerciseDetailsRequest le
                         ? le.EquipmentType
                         : default,
+                    RestTimer = exerciseRequest.RestTimer,
                     ExerciseDetail = (exerciseRequest.ExerciseDetailsRequest switch
                     {
                         RepsPerSetExerciseDetailsRequest reps => new RepsPerSet
@@ -101,7 +101,14 @@ internal static class Average2SavageHandler
             {
                 Id = workout.Id,
                 Name = workout.Name,
-                WorkoutActivity = workout.WorkoutActivity,
+                WorkoutActivity = new WorkoutActivityDto
+                {
+                    Week = workout.WorkoutActivity.Week,
+                    Day = workout.WorkoutActivity.Day,
+                    Id = workout.WorkoutActivity.Id,
+                    WorkoutId = workout.Id,
+                    WorkoutsInWeek = workout.WorkoutActivity.WorkoutsInWeek
+                },
                 Exercises = workout.Exercises.Select(e => new ExerciseDto
                 {
                     RestTimer = e.RestTimer,
@@ -135,13 +142,7 @@ internal static class Average2SavageHandler
                     })!
                 }).ToList()
             };
-
-            var routines = await workoutService.CreateHevyWorkoutWeekOneAsync(new SyncHevyWorkoutsRequest
-            {
-                WorkoutId = workout.Id
-            });
-            
-            return Results.Ok(routines);
+            return Results.Ok(workoutDto);
         }
         catch (Exception e)
         {

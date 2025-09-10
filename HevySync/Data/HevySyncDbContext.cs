@@ -2,6 +2,7 @@ using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Identity;
 using HevySync.Models;
 using HevySync.Models.Exercises;
+using HevySync.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ public class HevySyncDbContext(DbContextOptions<HevySyncDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Workout> Workouts { get; set; }
+    public DbSet<SessionExercise> SessionExercises { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

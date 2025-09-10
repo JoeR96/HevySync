@@ -42,7 +42,7 @@ public class WorkoutTests(
         response!.Name.ShouldBe(workoutRequest.WorkoutName);
 
         var exerciseTasks = workoutRequest.Exercises.Zip(response.Exercises, (request, response) => (request, response))
-            .Select(async exercisePair =>
+            .Select(exercisePair =>
             {
                 var (requestExercise, responseExercise) = exercisePair;
 
@@ -72,6 +72,8 @@ public class WorkoutTests(
                         throw new InvalidOperationException(
                             $"Unexpected exercise detail type in response: {responseExercise.ExerciseDetail?.GetType().Name}");
                 }
+
+                return Task.CompletedTask;
             });
 
         await Task.WhenAll(exerciseTasks);

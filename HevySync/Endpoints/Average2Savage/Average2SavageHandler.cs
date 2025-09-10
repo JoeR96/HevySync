@@ -55,52 +55,7 @@ internal static class Average2SavageHandler
 
         if (!sessionExercises.Any())
         {
-            var basicWorkoutDto = new WorkoutDto
-            {
-                Id = workout.Id,
-                Name = workout.Name,
-                WorkoutActivity = new WorkoutActivityDto
-                {
-                    Week = workout.WorkoutActivity.Week,
-                    Day = workout.WorkoutActivity.Day,
-                    Id = workout.WorkoutActivity.Id,
-                    WorkoutId = workout.Id,
-                    WorkoutsInWeek = workout.WorkoutActivity.WorkoutsInWeek
-                },
-                Exercises = workout.Exercises.Select(e => new ExerciseDto
-                {
-                    RestTimer = e.RestTimer,
-                    Id = e.Id,
-                    Order = e.Order,
-                    ExerciseName = e.ExerciseName,
-                    Day = e.Day,
-                    NumberOfSets = e.NumberOfSets,
-                    ExerciseDetail = e.ExerciseDetail switch
-                    {
-                        LinearProgression lp => new LinearProgressionDto
-                        {
-                            Program = ExerciseProgram.Average2SavageHypertrophy,
-                            Id = lp.Id,
-                            WeightProgression = lp.WeightProgression,
-                            AttemptsBeforeDeload = lp.AttemptsBeforeDeload,
-                            TrainingMax = lp.TrainingMax
-                        },
-                        RepsPerSet rps => new RepsPerSetDto
-                        {
-                            StartingWeight = rps.StartingWeight,
-                            Program = ExerciseProgram.Average2SavageRepsPerSet,
-                            Id = rps.Id,
-                            MinimumReps = rps.MinimumReps,
-                            TargetReps = rps.TargetReps,
-                            MaximumTargetReps = rps.MaximumTargetReps,
-                            StartingSetCount = rps.StartingSetCount,
-                            TargetSetCount = rps.TargetSetCount
-                        },
-                        _ => throw new InvalidOperationException(
-                            $"Unknown exercise detail type: {e.ExerciseDetail?.GetType().Name}")
-                    }
-                }).ToList()
-            };
+            var basicWorkoutDto = workout.ToDto();
 
             return Results.Ok(basicWorkoutDto);
         }
@@ -108,53 +63,9 @@ internal static class Average2SavageHandler
         var dailyWorkouts = sessionExercises
             .GroupBy(se => se.Exercise.Day)
             .OrderBy(g => g.Key)
-            .Select(dayGroup => new DailyWorkoutDto
-            {
-                Day = dayGroup.Key,
-                SessionExercises = dayGroup.Select(se => new SessionExerciseDto
-                {
-                    Id = se.Id,
-                    ExerciseId = se.ExerciseId,
-                    SessionExercises = se.Sets.Select(set => new SetDto
-                    {
-                        WeightKg = set.WeightKg,
-                        Reps = set.Reps
-                    }).ToList(),
-                    Exercise = new ExerciseDto
-                    {
-                        RestTimer = se.Exercise.RestTimer,
-                        Id = se.Exercise.Id,
-                        Order = se.Exercise.Order,
-                        ExerciseName = se.Exercise.ExerciseName,
-                        Day = se.Exercise.Day,
-                        NumberOfSets = se.Exercise.NumberOfSets,
-                        ExerciseDetail = se.Exercise.ExerciseDetail switch
-                        {
-                            LinearProgression lp => new LinearProgressionDto
-                            {
-                                Program = ExerciseProgram.Average2SavageHypertrophy,
-                                Id = lp.Id,
-                                WeightProgression = lp.WeightProgression,
-                                AttemptsBeforeDeload = lp.AttemptsBeforeDeload,
-                                TrainingMax = lp.TrainingMax
-                            },
-                            RepsPerSet rps => new RepsPerSetDto
-                            {
-                                StartingWeight = rps.StartingWeight,
-                                Program = ExerciseProgram.Average2SavageRepsPerSet,
-                                Id = rps.Id,
-                                MinimumReps = rps.MinimumReps,
-                                TargetReps = rps.TargetReps,
-                                MaximumTargetReps = rps.MaximumTargetReps,
-                                StartingSetCount = rps.StartingSetCount,
-                                TargetSetCount = rps.TargetSetCount
-                            },
-                            _ => throw new InvalidOperationException(
-                                $"Unknown exercise detail type: {se.Exercise.ExerciseDetail?.GetType().Name}")
-                        }
-                    }
-                }).ToList()
-            }).ToList();
+            .Select(dayGroup => dayGroup.ToDto())
+            .ToList();
+
 
         var weeklyWorkoutPlanDto = new WeeklyWorkoutPlanDto
         {

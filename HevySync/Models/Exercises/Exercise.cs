@@ -1,4 +1,5 @@
 using HevySync.Endpoints.Average2Savage.Enums;
+using HevySync.Endpoints.Average2Savage.Responses;
 
 namespace HevySync.Models.Exercises;
 
@@ -17,4 +18,21 @@ public class Exercise
     public ExerciseDetail ExerciseDetail { get; set; }
     public int Order { get; set; }
     public int NumberOfSets { get; set; }
+}
+
+public static class ExerciseMappingExtensions
+{
+    public static ExerciseDto ToDto(this Exercise exercise)
+    {
+        return new ExerciseDto
+        {
+            RestTimer = exercise.RestTimer,
+            Id = exercise.Id,
+            Order = exercise.Order,
+            ExerciseName = exercise.ExerciseName,
+            Day = exercise.Day,
+            NumberOfSets = exercise.NumberOfSets,
+            ExerciseDetail = exercise.ExerciseDetail.ToDto()
+        };
+    }
 }

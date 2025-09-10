@@ -21,3 +21,18 @@ public record WorkoutActivityDto
     public int WorkoutsInWeek { get; set; }
     public Guid WorkoutId { get; set; }
 }
+
+public static class WorkoutActivityMappingExtensions
+{
+    public static WorkoutActivityDto ToDto(this WorkoutActivity workoutActivity, Guid workoutId)
+    {
+        return new WorkoutActivityDto
+        {
+            Week = workoutActivity.Week,
+            Day = workoutActivity.Day,
+            Id = workoutActivity.Id,
+            WorkoutId = workoutId,
+            WorkoutsInWeek = workoutActivity.WorkoutsInWeek
+        };
+    }
+}

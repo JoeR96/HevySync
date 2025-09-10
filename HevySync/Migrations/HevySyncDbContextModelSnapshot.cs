@@ -161,6 +161,28 @@ namespace HevySync.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("HevySync.Models.Exercises.Set", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Reps")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SessionExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("WeightKg")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionExerciseId");
+
+                    b.ToTable("Set");
+                });
+
             modelBuilder.Entity("HevySync.Models.Workout", b =>
                 {
                     b.Property<Guid>("Id")
@@ -203,6 +225,22 @@ namespace HevySync.Migrations
                         .IsUnique();
 
                     b.ToTable("WorkoutActivity");
+                });
+
+            modelBuilder.Entity("HevySync.Services.SessionExercise", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.ToTable("SessionExercises");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -401,15 +439,31 @@ namespace HevySync.Migrations
                     b.Navigation("Exercise");
                 });
 
+            modelBuilder.Entity("HevySync.Models.Exercises.Set", b =>
+                {
+                    b.HasOne("HevySync.Services.SessionExercise", null)
+                        .WithMany("Sets")
+                        .HasForeignKey("SessionExerciseId");
+                });
+
             modelBuilder.Entity("HevySync.Models.WorkoutActivity", b =>
                 {
-                    b.HasOne("HevySync.Models.Workout", "Workout")
+                    b.HasOne("HevySync.Models.Workout", null)
                         .WithOne("WorkoutActivity")
                         .HasForeignKey("HevySync.Models.WorkoutActivity", "WorkoutId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
 
-                    b.Navigation("Workout");
+            modelBuilder.Entity("HevySync.Services.SessionExercise", b =>
+                {
+                    b.HasOne("HevySync.Models.Exercises.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercise");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -475,6 +529,11 @@ namespace HevySync.Migrations
 
                     b.Navigation("WorkoutActivity")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HevySync.Services.SessionExercise", b =>
+                {
+                    b.Navigation("Sets");
                 });
 #pragma warning restore 612, 618
         }

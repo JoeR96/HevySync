@@ -77,13 +77,74 @@ public class WorkoutTests(
         await Task.WhenAll(exerciseTasks);
 
         var createWeekOneEndpoint = Average2SavageEndpoint.WorkoutCreateWeekOne.GetFullRoutePath();
-
-        var createdWeekOneResponse = await _client.PostAsync<SyncHevyWorkoutsRequest>(
+        var creationResponse = await _client.PostAsync<WeeklyWorkoutPlanDto>(
             createWeekOneEndpoint,
             new SyncHevyWorkoutsRequest
             {
                 WorkoutId = response.Id
             });
+
+        var getWeekOneEndpoint = Average2SavageEndpoint.WorkoutGetCurrentWeek.GetFullRoutePath();
+        var createdWeekOneResponse = await _client.GetAsync<WeeklyWorkoutPlanDto>(
+            $"{getWeekOneEndpoint}?workoutId={response.Id}");
+
+        createdWeekOneResponse.ShouldNotBeNull();
+        createdWeekOneResponse.WorkoutId.ShouldBe(response.Id);
+        createdWeekOneResponse.WorkoutName.ShouldBe(workoutRequest.WorkoutName);
+        createdWeekOneResponse.Week.ShouldBe(1);
+
+        createdWeekOneResponse.DailyWorkouts.ShouldNotBeEmpty();
+        createdWeekOneResponse.DailyWorkouts.Count.ShouldBe(workoutRequest.WorkoutDaysInWeek);
+
+        for (var day = 1; day <= workoutRequest.WorkoutDaysInWeek; day++)
+        {
+            var dailyWorkout = createdWeekOneResponse.DailyWorkouts.FirstOrDefault(dw => dw.Day == day);
+            dailyWorkout.ShouldNotBeNull($"Day {day} should exist in daily workouts");
+
+            var expectedExercisesForDay = workoutRequest.Exercises.Where(e => e.Day == day).ToList();
+            dailyWorkout.SessionExercises.Count.ShouldBe(expectedExercisesForDay.Count,
+                $"Day {day} should have {expectedExercisesForDay.Count} session exercises");
+
+            foreach (var expectedExercise in expectedExercisesForDay)
+            {
+                var sessionExercise = dailyWorkout.SessionExercises
+                    .FirstOrDefault(se => se.Exercise.ExerciseName == expectedExercise.ExerciseName);
+
+                sessionExercise.ShouldNotBeNull(
+                    $"Session exercise '{expectedExercise.ExerciseName}' should exist on day {day}");
+
+                sessionExercise.Exercise.ExerciseName.ShouldBe(expectedExercise.ExerciseName);
+                sessionExercise.Exercise.Day.ShouldBe(expectedExercise.Day);
+                sessionExercise.Exercise.RestTimer.ShouldBe(expectedExercise.RestTimer);
+                sessionExercise.Exercise.Order.ShouldBe(expectedExercise.Order);
+
+                sessionExercise.SessionExercises.ShouldNotBeEmpty(
+                    $"Session exercise '{expectedExercise.ExerciseName}' should have sets");
+
+                switch (sessionExercise.Exercise.ExerciseDetail)
+                {
+                    case LinearProgressionDto linearDto:
+                        var originalLinear = (LinearProgressionExerciseDetailsRequest)expectedExercise.ExerciseDetailsRequest;
+                        linearDto.WeightProgression.ShouldBe(originalLinear.WeightProgression);
+                        linearDto.AttemptsBeforeDeload.ShouldBe(originalLinear.AttemptsBeforeDeload);
+                        linearDto.TrainingMax.ShouldBe(originalLinear.TrainingMax);
+                        break;
+
+                    case RepsPerSetDto repsDto:
+                        var originalReps = (RepsPerSetExerciseDetailsRequest)expectedExercise.ExerciseDetailsRequest;
+                        repsDto.MinimumReps.ShouldBe(originalReps.MinimumReps);
+                        repsDto.TargetReps.ShouldBe(originalReps.TargetReps);
+                        repsDto.MaximumTargetReps.ShouldBe(originalReps.MaximumTargetReps);
+                        repsDto.StartingSetCount.ShouldBe(originalReps.NumberOfSets);
+                        repsDto.TargetSetCount.ShouldBe(originalReps.TotalNumberOfSets);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unexpected exercise detail type: {sessionExercise.Exercise.ExerciseDetail?.GetType().Name}");
+                }
+            }
+        }
     }
 
 

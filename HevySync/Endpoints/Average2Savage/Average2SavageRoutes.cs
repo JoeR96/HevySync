@@ -7,7 +7,8 @@ public static class Average2SavageRoutes
     private static readonly Dictionary<Average2SavageEndpoint, string> RouteMappings = new()
     {
         { Average2SavageEndpoint.Workout, "/workout" },
-        { Average2SavageEndpoint.WorkoutCreateWeekOne, "/workout/create-week-one" }
+        { Average2SavageEndpoint.WorkoutCreateWeekOne, "/workout/create-week-one" },
+        { Average2SavageEndpoint.WorkoutGetCurrentWeek, "/workout/get-current-workout" }
     };
 
     public static string GetFullRoutePath(this Average2SavageEndpoint endpoint)

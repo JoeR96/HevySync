@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using FluentValidation;
 using HevySync.Data;
+using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.Facades;
 using HevySync.Models;
 using HevySync.Models.Exercises;
@@ -8,56 +10,111 @@ using Microsoft.EntityFrameworkCore;
 namespace HevySync.Services;
 
 public class WorkoutService(
-    HevyApiService hevyApiService,
     HevySyncDbContext dbContext,
     IA2SWorkoutFacade a2SWorkoutFacade)
 {
-    public async Task<Dictionary<int, List<SessionExercise>>> CreateWorkoutWeekOneAsync(
+    public async Task<WeeklyWorkoutPlan> CreateWorkoutWeekOneAsync(
         SyncHevyWorkoutsRequest syncHevyWorkoutsRequest)
     {
+        var workout = await GetWorkoutWithDetailsAsync(syncHevyWorkoutsRequest.WorkoutId);
+
+        var dailyWorkouts = await CreateDailyWorkoutsAsync(workout);
+
+        await SaveSessionExercisesToDatabaseAsync(dailyWorkouts);
+
+        return new WeeklyWorkoutPlan
+        {
+            WorkoutId = workout.Id,
+            WorkoutName = workout.Name,
+            Week = workout.WorkoutActivity.Week,
+            DailyWorkouts = dailyWorkouts
+        };
+    }
+
+    private async Task<Workout> GetWorkoutWithDetailsAsync(Guid workoutId)
+    {
         var workout = await dbContext.Workouts
-            .Where(w => w.Id == syncHevyWorkoutsRequest.WorkoutId)
-            .Include(workout => workout.WorkoutActivity)
-            .Include(workout => workout.Exercises)
-            .ThenInclude(exercise => exercise.ExerciseDetail)
+            .Where(w => w.Id == workoutId)
+            .Include(w => w.WorkoutActivity)
+            .Include(w => w.Exercises)
+            .ThenInclude(e => e.ExerciseDetail)
             .FirstOrDefaultAsync();
 
-        var groupedByDay = workout.Exercises
+        if (workout == null)
+            throw new InvalidOperationException($"Workout with ID {workoutId} not found.");
+
+        return workout;
+    }
+
+    private async Task<List<DailyWorkout>> CreateDailyWorkoutsAsync(Workout workout)
+    {
+        var exercisesByDay = workout.Exercises
             .GroupBy(e => e.Day)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .OrderBy(g => g.Key)
+            .ToList();
 
-        var groupedTasks = groupedByDay.ToDictionary(
-            group => group.Key,
-            group => Task.WhenAll(
-                group.Value.Select(async e => new SessionExercise
-                {
-                    ExerciseTemplateId = e.ExerciseTemplateId,
-                    RestSeconds = e.RestTimer,
-                    Notes = e.ExerciseName,
-                    Sets = await a2SWorkoutFacade.CreateWeekOneSetsAsync(e.ExerciseDetail, workout.WorkoutActivity)
-                }))
-        );
+        var dailyWorkouts = new List<DailyWorkout>();
 
-        var routineExercisesByDay = new Dictionary<int, List<SessionExercise>>();
+        foreach (var dayGroup in exercisesByDay)
+        {
+            var sessionExercises = await CreateSessionExercisesForDayAsync(
+                dayGroup.ToList(),
+                workout);
 
-        foreach (var (day, task) in
-                 groupedTasks)
-            routineExercisesByDay[day] = (await task).ToList();
+            dailyWorkouts.Add(new DailyWorkout
+            {
+                Day = dayGroup.Key,
+                SessionExercises = sessionExercises
+            });
+        }
 
-        return routineExercisesByDay;
+        return dailyWorkouts;
+    }
+
+    private async Task<List<SessionExercise>> CreateSessionExercisesForDayAsync(
+        List<Exercise> exercises,
+        Workout workout)
+    {
+        var sessionExercises = new List<SessionExercise>();
+
+        foreach (var exercise in exercises.OrderBy(e => e.Order))
+        {
+            var sets = await a2SWorkoutFacade.CreateWeekOneSetsAsync(
+                exercise.ExerciseDetail,
+                workout.WorkoutActivity);
+
+            sessionExercises.Add(new SessionExercise
+            {
+                Sets = sets,
+                Exercise = exercise,
+                ExerciseId = exercise.Id
+            });
+        }
+
+        return sessionExercises;
+    }
+
+    private async Task SaveSessionExercisesToDatabaseAsync(List<DailyWorkout> dailyWorkouts)
+    {
+        var allSessionExercises = dailyWorkouts
+            .SelectMany(dw => dw.SessionExercises)
+            .ToList();
+
+        dbContext.SessionExercises.AddRange(allSessionExercises);
+        await dbContext.SaveChangesAsync();
     }
 
     private IEnumerable<RoutineSet> CreateRoutineSets(
         Exercise exercise,
         WorkoutActivity workoutActivity)
     {
-        if (exercise == null || exercise.ExerciseDetail == null)
+        if (exercise?.ExerciseDetail == null)
             throw new ArgumentNullException(nameof(exercise), "Exercise or ExerciseDetail cannot be null.");
 
         for (var i = 0; i < exercise.NumberOfSets; i++)
             switch (exercise.ExerciseDetail)
             {
-                case LinearProgression reps:
+                case LinearProgression:
                     yield return new RoutineSet
                     {
                         WeightKg = 0,
@@ -80,12 +137,51 @@ public class WorkoutService(
     }
 }
 
+// Response models
+public class WeeklyWorkoutPlan
+{
+    public Guid WorkoutId { get; set; }
+    public string WorkoutName { get; set; }
+    public int Week { get; set; }
+    public List<DailyWorkout> DailyWorkouts { get; set; } = new();
+}
+
+public record WeeklyWorkoutPlanDto
+{
+    public Guid WorkoutId { get; set; }
+    public string WorkoutName { get; set; }
+    public int Week { get; set; }
+    public List<DailyWorkoutDto> DailyWorkouts { get; set; } = new();
+}
+
+public record DailyWorkoutDto
+{
+    public int Day { get; set; }
+    public List<SessionExerciseDto> SessionExercises { get; set; } = new();
+}
+
+public class DailyWorkout
+{
+    public int Day { get; set; }
+    public List<SessionExercise> SessionExercises { get; set; } = new();
+}
+
 public class SessionExercise
 {
-    public string ExerciseTemplateId { get; set; }
-    public int RestSeconds { get; set; }
-    public string Notes { get; set; }
-    public List<Set> Sets { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
+
+    public ICollection<Set> Sets { get; set; } = new List<Set>();
+    public Exercise Exercise { get; set; }
+    public Guid ExerciseId { get; set; }
+}
+
+public record SessionExerciseDto
+{
+    public Guid Id { get; set; }
+    public ICollection<SetDto> SessionExercises { get; set; } = new List<SetDto>();
+    public ExerciseDto Exercise { get; set; }
+    public Guid ExerciseId { get; set; }
 }
 
 public class SyncHevyWorkoutsRequest

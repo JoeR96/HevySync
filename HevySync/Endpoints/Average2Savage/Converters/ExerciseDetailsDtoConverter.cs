@@ -34,7 +34,8 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
         {
             Id = root.GetProperty(nameof(LinearProgressionDto.Id)).GetGuid(),
             WeightProgression = root.GetProperty(nameof(LinearProgressionDto.WeightProgression)).GetDecimal(),
-            AttemptsBeforeDeload = root.GetProperty(nameof(LinearProgressionDto.AttemptsBeforeDeload)).GetInt32()
+            AttemptsBeforeDeload = root.GetProperty(nameof(LinearProgressionDto.AttemptsBeforeDeload)).GetInt32(),
+            TrainingMax = root.GetProperty(nameof(LinearProgressionDto.TrainingMax)).GetDecimal()
         };
     }
 

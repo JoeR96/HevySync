@@ -1,9 +1,11 @@
+using HevySync.Configuration.Options;
 using HevySync.Data;
 using HevySync.Facades;
 using HevySync.Handlers;
 using HevySync.Identity;
 using HevySync.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace HevySync.Configuration;
 
@@ -13,13 +15,18 @@ public static class AppConfiguration
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.Configure<ExternalApiOptions>(
+            configuration.GetSection(ExternalApiOptions.SectionName));
+
         services.AddHttpContextAccessor()
             .AddTransient<HevyApiAuthHandler>()
-            .AddHttpClient<HevyApiService>(client =>
+            .AddHttpClient<HevyApiService>((serviceProvider, client) =>
             {
-                client.BaseAddress = new Uri(configuration["ExternalApiUrls:HevyApi"]!);
+                var apiOptions = serviceProvider.GetRequiredService<IOptions<ExternalApiOptions>>();
+                client.BaseAddress = new Uri(apiOptions.Value.HevyApi);
             })
             .AddHttpMessageHandler<HevyApiAuthHandler>();
+
 
         return services;
     }
@@ -50,6 +57,17 @@ public static class AppConfiguration
     {
         services.AddIdentityApiEndpoints<ApplicationUser>()
             .AddEntityFrameworkStores<HevySyncDbContext>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<HypertrophyOptions>(
+            configuration.GetSection(HypertrophyOptions.SectionName));
+
+        services.Configure<WorkoutOptions>(
+            configuration.GetSection(WorkoutOptions.SectionName));
 
         return services;
     }

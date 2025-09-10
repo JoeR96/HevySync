@@ -4,6 +4,7 @@ using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.IntegrationTests.Bogus;
 using HevySync.IntegrationTests.Extensions;
+using HevySync.Models;
 using HevySync.Services;
 using Shouldly;
 

@@ -1,3 +1,4 @@
+using HevySync.Models;
 using HevySync.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

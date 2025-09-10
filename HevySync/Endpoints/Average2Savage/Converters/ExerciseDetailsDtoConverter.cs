@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HevySync.Endpoints.Average2Savage.Responses;
+using HevySync.Models.Exercises;
 
 namespace HevySync.Endpoints.Average2Savage.Converters;
 

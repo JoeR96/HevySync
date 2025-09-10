@@ -8,13 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HevySync.Data;
 
-public class HevySyncDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class HevySyncDbContext(DbContextOptions<HevySyncDbContext> options)
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
-    public HevySyncDbContext(DbContextOptions<HevySyncDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Workout> Workouts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

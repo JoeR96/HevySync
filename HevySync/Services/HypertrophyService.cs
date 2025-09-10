@@ -5,14 +5,9 @@ using Microsoft.Extensions.Options;
 
 namespace HevySync.Services;
 
-public class HypertrophyService
+public class HypertrophyService(IOptions<HypertrophyOptions> options)
 {
-    private readonly HypertrophyOptions _options;
-
-    public HypertrophyService(IOptions<HypertrophyOptions> options)
-    {
-        _options = options.Value;
-    }
+    private readonly HypertrophyOptions _options = options.Value;
 
     public async Task<List<Set>> CreateWeekOneSetsAsync(
         LinearProgression exercise,

@@ -10,15 +10,15 @@ public static class Average2SavageRoutes
         { Average2SavageEndpoint.WorkoutCreateWeekOne, "/workout/create-week-one" }
     };
 
-    public static string GetRoutePath(this Average2SavageEndpoint endpoint)
+    public static string GetFullRoutePath(this Average2SavageEndpoint endpoint)
+    {
+        return $"{BaseRoute}{endpoint.GetRoutePath()}";
+    }
+
+    private static string GetRoutePath(this Average2SavageEndpoint endpoint)
     {
         if (RouteMappings.TryGetValue(endpoint, out var path)) return path;
 
         throw new ArgumentOutOfRangeException(nameof(endpoint), $"No route path defined for {endpoint}");
-    }
-
-    public static string GetFullRoutePath(this Average2SavageEndpoint endpoint)
-    {
-        return $"{BaseRoute}{endpoint.GetRoutePath()}";
     }
 }

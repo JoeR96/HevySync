@@ -4,6 +4,7 @@ using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.IntegrationTests.Bogus;
 using HevySync.IntegrationTests.Extensions;
+using HevySync.Services;
 using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
@@ -74,7 +75,17 @@ public class WorkoutTests(
             });
 
         await Task.WhenAll(exerciseTasks);
+
+        var createWeekOneEndpoint = Average2SavageEndpoint.WorkoutCreateWeekOne.GetFullRoutePath();
+
+        var createdWeekOneResponse = await _client.PostAsync<SyncHevyWorkoutsRequest>(
+            createWeekOneEndpoint,
+            new SyncHevyWorkoutsRequest
+            {
+                WorkoutId = response.Id
+            });
     }
+
 
     [Fact]
     public async Task CreateWorkoutWithInvalidPropertiesPresentsValidationFailures()

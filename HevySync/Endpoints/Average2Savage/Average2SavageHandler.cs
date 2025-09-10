@@ -20,6 +20,21 @@ internal static class Average2SavageHandler
     {
         routes.MapPost("/workout", PostAverage2Savage)
             .RequireAuthorization();
+
+        routes.MapPost("/workout/create-week-one", PostAverage2SavageCreateWorkoutWeekOneSessionExercises)
+            .RequireAuthorization();
+    }
+
+    private static async Task<IResult> PostAverage2SavageCreateWorkoutWeekOneSessionExercises(
+        ClaimsPrincipal userPrincipal,
+        [FromServices] IValidator<SyncHevyWorkoutsRequest> validator,
+        [FromBody] SyncHevyWorkoutsRequest request,
+        [FromServices] HevySyncDbContext dbContext,
+        [FromServices] WorkoutService workoutService
+    )
+    {
+        var weekOne = await workoutService.CreateWorkoutWeekOneAsync(request);
+        return Results.Ok(weekOne);
     }
 
     private static async Task<IResult> PostAverage2Savage(
@@ -81,7 +96,8 @@ internal static class Average2SavageHandler
                             TargetReps = reps.TargetReps,
                             MaximumTargetReps = reps.MaximumTargetReps,
                             StartingSetCount = reps.NumberOfSets,
-                            TargetSetCount = reps.TotalNumberOfSets
+                            TargetSetCount = reps.TotalNumberOfSets,
+                            StartingWeight = Math.Round(reps.StartingWeight, 2)
                         },
                         LinearProgressionExerciseDetailsRequest linear => new LinearProgression
                         {

@@ -9,6 +9,7 @@ public record RepsPerSetExerciseDetailsRequest(
     int MaximumTargetReps,
     int NumberOfSets,
     int TotalNumberOfSets,
+    decimal StartingWeight,
     ExerciseProgram Program
 ) : ExerciseDetailsRequest;
 
@@ -16,6 +17,10 @@ public class RepsPerSetExerciseDetailsRequestValidator : AbstractValidator<RepsP
 {
     public RepsPerSetExerciseDetailsRequestValidator()
     {
+        RuleFor(x => x.StartingWeight)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Starting weight must be greater than or equal to 0.");
+
         RuleFor(x => x.MinimumReps)
             .GreaterThanOrEqualTo(1)
             .WithMessage("Minimum reps must be at least 1.");

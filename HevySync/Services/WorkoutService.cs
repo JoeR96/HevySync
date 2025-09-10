@@ -1,3 +1,4 @@
+using FluentValidation;
 using HevySync.Data;
 using HevySync.Facades;
 using HevySync.Models;
@@ -11,19 +12,15 @@ public class WorkoutService(
     HevySyncDbContext dbContext,
     IA2SWorkoutFacade a2SWorkoutFacade)
 {
-    public async Task<List<RoutineResponse>> CreateHevyWorkoutWeekOneAsync(
+    public async Task<Dictionary<int, List<SessionExercise>>> CreateWorkoutWeekOneAsync(
         SyncHevyWorkoutsRequest syncHevyWorkoutsRequest)
     {
         var workout = await dbContext.Workouts
             .Where(w => w.Id == syncHevyWorkoutsRequest.WorkoutId)
             .Include(workout => workout.WorkoutActivity)
             .Include(workout => workout.Exercises)
+            .ThenInclude(exercise => exercise.ExerciseDetail)
             .FirstOrDefaultAsync();
-
-        var workoutActivity = workout.WorkoutActivity;
-
-        var routineFolders = await hevyApiService.GetRoutineFoldersAsync();
-        int? Average2SavageFolder = routineFolders.RoutineFolders.FirstOrDefault(f => f.Title == "Average2Savage").Id;
 
         var groupedByDay = workout.Exercises
             .GroupBy(e => e.Day)
@@ -32,43 +29,22 @@ public class WorkoutService(
         var groupedTasks = groupedByDay.ToDictionary(
             group => group.Key,
             group => Task.WhenAll(
-                group.Value.Select(async e => new RoutineExercise
+                group.Value.Select(async e => new SessionExercise
                 {
                     ExerciseTemplateId = e.ExerciseTemplateId,
                     RestSeconds = e.RestTimer,
                     Notes = e.ExerciseName,
-                    Sets = await a2SWorkoutFacade.CreateRoutineWeekOneSetsAsync(e.ExerciseDetail, workoutActivity)
+                    Sets = await a2SWorkoutFacade.CreateWeekOneSetsAsync(e.ExerciseDetail, workout.WorkoutActivity)
                 }))
         );
 
-        var routineExercisesByDay = new Dictionary<int, List<RoutineExercise>>();
+        var routineExercisesByDay = new Dictionary<int, List<SessionExercise>>();
 
         foreach (var (day, task) in
                  groupedTasks)
             routineExercisesByDay[day] = (await task).ToList();
 
-
-        List<RoutineResponse> routineExercises = new();
-        foreach (var (day, exercises) in routineExercisesByDay)
-        {
-            // Create a routine request for each day
-            var routineRequest = new RoutineRequest
-            {
-                Routine = new Routine
-                {
-                    Notes = $"Week {workoutActivity.Week} of the Average2Savage routine - Day {day}",
-                    FolderId = Average2SavageFolder,
-                    Title =
-                        $"Average2Savage Week {workoutActivity.Week} Day {day}",
-                    Exercises = exercises
-                }
-            };
-
-            var response = await hevyApiService.CreateRoutineAsync(routineRequest);
-            routineExercises.Add(response);
-        }
-
-        return routineExercises;
+        return routineExercisesByDay;
     }
 
     private IEnumerable<RoutineSet> CreateRoutineSets(
@@ -104,7 +80,25 @@ public class WorkoutService(
     }
 }
 
+public class SessionExercise
+{
+    public string ExerciseTemplateId { get; set; }
+    public int RestSeconds { get; set; }
+    public string Notes { get; set; }
+    public List<Set> Sets { get; set; }
+}
+
 public class SyncHevyWorkoutsRequest
 {
     public Guid WorkoutId { get; set; }
+}
+
+public class SyncHevyWorkoutsRequestValidator : AbstractValidator<SyncHevyWorkoutsRequest>
+{
+    public SyncHevyWorkoutsRequestValidator()
+    {
+        RuleFor(x => x.WorkoutId)
+            .NotEmpty()
+            .WithMessage("Workout Id cannot be empty.");
+    }
 }

@@ -23,18 +23,17 @@ public class HypertrophyService
     private HyperTrophyBlockPrimaryLift HTPL { get; } = new();
     private HyperTrophyBlockAuxillaryLift HTAL { get; } = new();
 
-    public async Task<List<RoutineSet>> CreateRoutineWeekOneSetsAsync(
+    public async Task<List<Set>> CreateWeekOneSetsAsync(
         LinearProgression exercise,
         WorkoutActivity workoutActivity)
     {
-        var sets = new List<RoutineSet>();
+        var sets = new List<Set>();
         for (var i = 0; i < GetSets(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary); i++)
-            sets.Add(new RoutineSet
+            sets.Add(new Set
             {
-                WeightKg = (double?)GetWorkingWeight(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary,
+                WeightKg = GetWorkingWeight(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary,
                     exercise.TrainingMax, 1.25m),
-                Reps = GetRepsPerSet(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary),
-                Type = "normal"
+                Reps = GetRepsPerSet(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary)
             });
 
         sets.Last().Reps = GetAmprapRepTarget(A2SBlocks.Hypertrophy, workoutActivity.Week, exercise.Primary);
@@ -67,19 +66,6 @@ public class HypertrophyService
     {
         return primary ? a2SPrimaryLifts[block].amrapRepTarget[week] : a2SAuxLifts[block].amrapRepTarget[week];
     }
-    /*public async Task<List<RoutineSet>> CreateRoutineSetsAsync(LinearProgression exercise)
-    {
-        ExerciseCompletedStatus status = ExerciseCompletedStatus.Failed;
-
-
-        if (exercise.SetCountReached(request.Sets) &&
-            exercise.TargetRepCountReached(request.Reps) &&
-            exercise.WithinRepRange(request.Reps))
-        {
-            status = ExerciseCompletedStatus.Progressed;
-            linearProgressionExercise.CurrentAttempt = 0;
-        }
-    }*/
 }
 
 public enum A2SBlocks

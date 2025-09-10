@@ -14,6 +14,7 @@ internal static class RepsPerSetExerciseDetailsRequestBogusGenerator
                 f.Random.Number(11, 15),
                 f.Random.Number(2, 6),
                 f.Random.Number(6, 10),
+                f.Random.Decimal(1, 20),
                 ExerciseProgram.Average2SavageRepsPerSet
             ));
     }

@@ -1,20 +1,18 @@
-using HevySync.Models;
 using HevySync.Models.Exercises;
 
 namespace HevySync.Services;
 
 public class RepsPerSetService
 {
-    public async Task<List<RoutineSet>> CreateRoutineWeekOneSetsAsync(
+    public async Task<List<Set>> CreateWeekOneSetsAsync(
         RepsPerSet exercise)
     {
-        var sets = new List<RoutineSet>();
+        var sets = new List<Set>();
         for (var i = 0; i < exercise.StartingSetCount; i++)
-            sets.Add(new RoutineSet
+            sets.Add(new Set
             {
-                WeightKg = (double?)exercise.StartingWeight,
-                Reps = exercise.MinimumReps,
-                Type = "normal"
+                WeightKg = exercise.StartingWeight,
+                Reps = exercise.MinimumReps
             });
 
         return sets;

@@ -39,6 +39,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
             root.GetProperty("MaximumTargetReps").GetInt32(),
             root.GetProperty("NumberOfSets").GetInt32(),
             root.GetProperty("TotalNumberOfSets").GetInt32(),
+            root.GetProperty("StartingWeight").GetDecimal(),
             ExerciseProgram.Average2SavageRepsPerSet
         );
     }
@@ -72,6 +73,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
                 writer.WriteNumber(nameof(reps.MaximumTargetReps), reps.MaximumTargetReps);
                 writer.WriteNumber(nameof(reps.NumberOfSets), reps.NumberOfSets);
                 writer.WriteNumber(nameof(reps.TotalNumberOfSets), reps.TotalNumberOfSets);
+                writer.WriteNumber(nameof(reps.StartingWeight), reps.StartingWeight);
                 break;
 
             case LinearProgressionExerciseDetailsRequest linear:

@@ -1,1 +1,0 @@
-namespace HevySync.Endpoints.Average2Savage.Responses;

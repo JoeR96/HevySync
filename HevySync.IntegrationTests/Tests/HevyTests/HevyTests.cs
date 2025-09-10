@@ -1,7 +1,7 @@
-using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Hevy;
 using HevySync.Endpoints.Hevy.Requests;
 using HevySync.IntegrationTests.Extensions;
+using HevySync.IntegrationTests.Fixtures;
 using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.HevyTests;

@@ -1,4 +1,4 @@
-namespace HevySync.IntegrationTests;
+namespace HevySync.IntegrationTests.Fixtures;
 
 public class WebHostFixture : IAsyncLifetime
 {
@@ -12,7 +12,6 @@ public class WebHostFixture : IAsyncLifetime
 
     public Task DisposeAsync()
     {
-        _factory.Dispose();
         return Task.CompletedTask;
     }
 

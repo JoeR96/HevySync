@@ -10,29 +10,31 @@ services:
         BUILD_CONFIGURATION: "Debug"
     command: []
     entrypoint:
-    - "/opt/rider-debugger/linux-x64/JetBrains.Debugger.Worker"
+    - "/opt/JetBrains/RiderDebuggerTools/linux-x64/JetBrains.Debugger.Worker"
     - "--runtimeconfig"
-    - "/opt/rider-debugger/JetBrains.Debugger.Worker.runtimeconfig.json"
+    - "/opt/JetBrains/RiderDebuggerTools/JetBrains.Debugger.Worker.runtimeconfig.json"
     - "--mode=server"
-    - "--frontend-port=57100"
-    - "--backend-port=57300"
+    - "--frontend-port=57000"
+    - "--backend-port=57200"
+    - "--roslyn-worker-port=57404"
     - "--timeout=60"
     environment:
       ASPNETCORE_STATICWEBASSETS: "/app/bin/Debug/net9.0/HevySync.staticwebassets.runtime.CT.json"
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
-      RIDER_DEBUGGER_LOG_DIR: "/var/opt/rider-debugger"
-      RESHARPER_LOG_CONF: "/etc/opt/rider-debugger/backend-log.xml"
+      RIDER_DEBUGGER_LOG_DIR: "/var/opt/JetBrains/RiderDebuggerTools"
+      RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "hevysync:dev"
     ports:
-    - "127.0.0.1:57015:57100"
-    - "127.0.0.1:57215:57300"
+    - "127.0.0.1:57004:57000"
+    - "127.0.0.1:57204:57200"
+    - "127.0.0.1:57404:57404"
     volumes:
-    - "C:\\Users\\Administrator\\.nuget\\packages:/home/app/.nuget/packages"
     - "C:\\Users\\Administrator\\RiderProjects\\HevyToAverage2Savage\\HevySync:/app:rw"
     - "C:\\Users\\Administrator\\RiderProjects\\HevyToAverage2Savage:/src:rw"
+    - "C:\\Users\\Administrator\\.nuget\\packages:/home/app/.nuget/packages"
     - "C:\\Users\\Administrator\\AppData\\Local\\JetBrains\\RiderRemoteDebugger\\\
-      2024.2.6\\Linux64:/opt/rider-debugger"
-    - "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Rider\\bin:/etc/opt/rider-debugger/backend-log.xml"
-    - "C:\\Users\\Administrator\\AppData\\Local\\JetBrains\\Rider2024.2\\log\\DebuggerWorker\\\
-      JetBrains.Debugger.Worker.2025_6_08_00_36_08:/var/opt/rider-debugger:rw"
+      2025.1.4\\Linux64:/opt/JetBrains/RiderDebuggerTools"
+    - "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Rider\\bin\\backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    - "C:\\Users\\Administrator\\AppData\\Local\\JetBrains\\Rider2025.1\\log\\DebuggerWorker\\\
+      JetBrains.Debugger.Worker.2025_11_05_12_04_34:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"

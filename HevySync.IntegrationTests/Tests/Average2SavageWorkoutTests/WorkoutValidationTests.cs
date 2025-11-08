@@ -1,17 +1,162 @@
+using HevySync.Application.Workouts.Commands.GenerateWeekOne;
 using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
+using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.IntegrationTests.Bogus;
 using HevySync.IntegrationTests.Extensions;
-using HevySync.IntegrationTests.Fixtures;
+using HevySync.Services;
 using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
 
-[Collection("Workout Integration Tests")]
-public class WorkoutValidationTests(WebHostFixture webHostFixture)
+[Collection("Integration Tests")]   
+public class WorkoutTests(
+    WebHostFixture webHostFixture)
 {
     private readonly HttpClient _client = webHostFixture.GetHttpClient();
+
+    [Fact]
+    public async Task CreateWorkout()
+    {
+        var exerciseRequestsFaker = ExerciseRequestBogusGenerator.GenerateExerciseRequests(
+            RepsPerSetExerciseDetailsRequestBogusGenerator.GenerateRepsPerSetExerciseDetailsRequest(),
+            LinearProgressionExerciseDetailsRequestBogusGenerator.GenerateLinearProgressionExerciseDetailsRequest(),
+            5,
+            5
+        );
+
+        var workoutRequest = new CreateWorkoutRequest
+        {
+            WorkoutName = "Test Workout",
+            Exercises = exerciseRequestsFaker,
+            WorkoutDaysInWeek = 5
+        };
+
+        var endpoint = Average2SavageEndpoint.Workout.GetFullRoutePath();
+
+        var response = await _client.PostAsync<WorkoutDto>(
+            endpoint,
+            workoutRequest);
+
+        response!.Exercises.Count.ShouldBe(workoutRequest.Exercises.Count);
+        response!.Name.ShouldBe(workoutRequest.WorkoutName);
+
+        var exerciseTasks = workoutRequest.Exercises.Zip(response.Exercises, (request, response) => (request, response))
+            .Select(async exercisePair =>
+            {
+                var (requestExercise, responseExercise) = exercisePair;
+
+                responseExercise.ExerciseName.ShouldBe(requestExercise.ExerciseName);
+                responseExercise.Day.ShouldBe(requestExercise.Day);
+                responseExercise.RestTimer.ShouldBe(requestExercise.RestTimer);
+
+                switch (responseExercise.ExerciseDetail)
+                {
+                    case LinearProgressionDto linearResponse:
+                        var linearRequest =
+                            (LinearProgressionExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
+                        linearResponse.WeightProgression.ShouldBe(linearRequest.WeightProgression);
+                        linearResponse.AttemptsBeforeDeload.ShouldBe(linearRequest.AttemptsBeforeDeload);
+                        break;
+
+                    case RepsPerSetDto repsResponse:
+                        var repsRequest = (RepsPerSetExerciseDetailsRequest)requestExercise.ExerciseDetailsRequest;
+                        repsResponse.MinimumReps.ShouldBe(repsRequest.MinimumReps);
+                        repsResponse.TargetReps.ShouldBe(repsRequest.TargetReps);
+                        repsResponse.MaximumTargetReps.ShouldBe(repsRequest.MaximumTargetReps);
+                        repsResponse.StartingSetCount.ShouldBe(repsRequest.NumberOfSets);
+                        repsResponse.TargetSetCount.ShouldBe(repsRequest.TotalNumberOfSets);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unexpected exercise detail type in response: {responseExercise.ExerciseDetail?.GetType().Name}");
+                }
+            });
+
+        await Task.WhenAll(exerciseTasks);
+
+        // Generate week one sessions
+        var createWeekOneEndpoint = Average2SavageEndpoint.WorkoutCreateWeekOne.GetFullRoutePath();
+
+        var createdWeekOneResponse = await _client.PostAsync<Dictionary<int, List<Application.Workouts.Commands.GenerateWeekOne.SessionExerciseDto>>>(
+            createWeekOneEndpoint,
+            new GenerateWeekOneRequest
+            {
+                WorkoutId = response.Id
+            });
+
+        // Validate week one sessions were generated
+        createdWeekOneResponse.ShouldNotBeNull();
+        createdWeekOneResponse.Count.ShouldBe(5); // 5 days in the workout
+
+        // Validate each day has exercises
+        foreach (var day in createdWeekOneResponse.Keys)
+        {
+            var dayExercises = createdWeekOneResponse[day];
+            dayExercises.ShouldNotBeNull();
+            dayExercises.Count.ShouldBeGreaterThan(0);
+
+            // Validate each exercise has sets
+            foreach (var exercise in dayExercises)
+            {
+                exercise.ExerciseTemplateId.ShouldNotBeNullOrEmpty();
+                exercise.Sets.ShouldNotBeNull();
+                exercise.Sets.Count.ShouldBeGreaterThan(0);
+
+                // Validate each set has weight and reps
+                foreach (var set in exercise.Sets)
+                {
+                    set.WeightKg.ShouldBeGreaterThan(0);
+                    set.Reps.ShouldBeGreaterThan(0);
+                }
+            }
+        }
+
+        // Complete day 1 with successful performance
+        var completeDayEndpoint = Average2SavageEndpoint.WorkoutCompleteDay.GetFullRoutePath();
+
+        // Get exercises for day 1
+        var day1Exercises = response.Exercises.Where(e => e.Day == 1).OrderBy(e => e.Order).ToList();
+        var day1GeneratedExercises = createdWeekOneResponse[1];
+
+        // Create performance data for each exercise
+        // Match exercises by their order since they're both ordered the same way
+        var exercisePerformances = day1Exercises.Zip(day1GeneratedExercises, (exercise, generatedExercise) =>
+        {
+            return new ExercisePerformanceRequest
+            {
+                ExerciseId = exercise.Id,
+                CompletedSets = generatedExercise.Sets.Select(s => new CompletedSetRequest
+                {
+                    WeightKg = s.WeightKg,
+                    Reps = s.Reps
+                }).ToList(),
+                PerformanceResult = "Success" // All exercises completed successfully
+            };
+        }).ToList();
+
+        var completeDayRequest = new CompleteWorkoutDayRequest
+        {
+            WorkoutId = response.Id,
+            ExercisePerformances = exercisePerformances
+        };
+
+        var completeDayResponse = await _client.PostAsync<CompleteWorkoutDayResponse>(
+            completeDayEndpoint,
+            completeDayRequest);
+
+        // Validate completion response
+        completeDayResponse.ShouldNotBeNull();
+        completeDayResponse.WorkoutId.ShouldBe(response.Id);
+        completeDayResponse.CompletedWeek.ShouldBe(1);
+        completeDayResponse.CompletedDay.ShouldBe(1);
+        completeDayResponse.NewWeek.ShouldBe(1);
+        completeDayResponse.NewDay.ShouldBe(2); // Should advance to day 2
+        completeDayResponse.WeekCompleted.ShouldBeFalse(); // Week 1 not completed yet
+    }
+
 
     [Fact]
     public async Task CreateWorkoutWithInvalidPropertiesPresentsValidationFailures()

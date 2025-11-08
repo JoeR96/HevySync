@@ -4,5 +4,6 @@ public enum Average2SavageEndpoint
 {
     Workout,
     WorkoutCreateWeekOne,
-    WorkoutGetCurrentWeek
+    WorkoutCompleteDay,
+    WorkoutGenerateNextWeek
 }

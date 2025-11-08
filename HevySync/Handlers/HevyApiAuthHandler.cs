@@ -1,4 +1,4 @@
-using HevySync.Identity;
+using HevySync.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace HevySync.Handlers;

@@ -1,0 +1,46 @@
+namespace HevySync.Domain.Common;
+
+/// <summary>
+/// Base class for all entities in the domain.
+/// Entities are distinguished by their identity (ID), not their attributes.
+/// </summary>
+public abstract class Entity<TId> : IEquatable<Entity<TId>>
+    where TId : notnull
+{
+    public TId Id { get; protected set; } = default!;
+
+    protected Entity(TId id)
+    {
+        Id = id;
+    }
+
+    protected Entity()
+    {
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Entity<TId> entity && Id.Equals(entity.Id);
+    }
+
+    public bool Equals(Entity<TId>? other)
+    {
+        return Equals((object?)other);
+    }
+
+    public static bool operator ==(Entity<TId> left, Entity<TId> right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(Entity<TId> left, Entity<TId> right)
+    {
+        return !Equals(left, right);
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+}
+

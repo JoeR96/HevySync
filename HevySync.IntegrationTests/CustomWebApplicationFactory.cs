@@ -1,5 +1,5 @@
-using HevySync.Data;
-using HevySync.Identity;
+using HevySync.Infrastructure.Identity;
+using HevySync.Infrastructure.Persistence;
 using HevySync.IntegrationTests.Auth;
 using HevySync.IntegrationTests.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -21,7 +21,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.ReplaceDbContextWithPostgresTestContainer<HevySyncDbContext>(
-                _postgresContainer.GetConnectionString(), "HevySync");
+                _postgresContainer.GetConnectionString(), "HevySync.Infrastructure");
 
             services.AddAuthentication(options =>
                 {
@@ -35,15 +35,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             dbContext.Database.Migrate();
 
-            dbContext.Users.Add(new ApplicationUser
+            // Only add the test user if it doesn't already exist
+            if (!dbContext.Users.Any(u => u.Id == UserHelper.UserId))
             {
-                Id = UserHelper.UserId,
-                UserName = "TestUser",
-                Email = "testuser@example.com",
-                SecurityStamp = Guid.NewGuid().ToString(),
-                HevyApiKey = Guid.NewGuid().ToString()
-            });
-            dbContext.SaveChanges();
+                dbContext.Users.Add(new ApplicationUser
+                {
+                    Id = UserHelper.UserId,
+                    UserName = "TestUser",
+                    Email = "testuser@example.com",
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    HevyApiKey = Guid.NewGuid().ToString()
+                });
+                dbContext.SaveChanges();
+            }
         });
     }
 

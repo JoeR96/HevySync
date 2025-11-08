@@ -8,7 +8,8 @@ public static class Average2SavageRoutes
     {
         { Average2SavageEndpoint.Workout, "/workout" },
         { Average2SavageEndpoint.WorkoutCreateWeekOne, "/workout/create-week-one" },
-        { Average2SavageEndpoint.WorkoutGetCurrentWeek, "/workout/get-current-workout" }
+        { Average2SavageEndpoint.WorkoutCompleteDay, "/workout/complete-day" },
+        { Average2SavageEndpoint.WorkoutGenerateNextWeek, "/workout/generate-next-week" }
     };
 
     public static string GetFullRoutePath(this Average2SavageEndpoint endpoint)

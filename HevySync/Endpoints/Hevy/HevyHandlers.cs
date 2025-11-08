@@ -2,7 +2,7 @@ using System.Security.Claims;
 using FluentValidation;
 using HevySync.Endpoints.Hevy.Requests;
 using HevySync.Endpoints.Responses;
-using HevySync.Identity;
+using HevySync.Infrastructure.Identity;
 using HevySync.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

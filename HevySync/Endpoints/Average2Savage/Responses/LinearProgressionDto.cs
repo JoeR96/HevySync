@@ -1,4 +1,5 @@
 using HevySync.Endpoints.Average2Savage.Enums;
+using HevySync.Models.Exercises;
 
 namespace HevySync.Endpoints.Average2Savage.Responses;
 

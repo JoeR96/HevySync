@@ -1,8 +1,7 @@
 using HevySync.Configuration.Options;
-using HevySync.Data;
 using HevySync.Facades;
 using HevySync.Handlers;
-using HevySync.Identity;
+using HevySync.Infrastructure.Persistence;
 using HevySync.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -34,32 +33,12 @@ public static class AppConfiguration
     public static IServiceCollection AddDomainServices(
         this IServiceCollection services)
     {
-        return services.AddScoped<WorkoutService>()
-            .AddScoped<IA2SWorkoutFacade, A2SWorkoutFacade>()
+        return services.AddScoped<IA2SWorkoutFacade, A2SWorkoutFacade>()
             .AddScoped<HypertrophyService>()
             .AddScoped<RepsPerSetService>();
     }
 
-    public static IServiceCollection AddDataServices(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        return services.AddDbContext<HevySyncDbContext>(options =>
-        {
-            var connectionString = configuration.GetConnectionString("DatabaseConnectionString");
-            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("HevySync"));
-        });
-    }
 
-
-    public static IServiceCollection AddIdentityServices(
-        this IServiceCollection services)
-    {
-        services.AddIdentityApiEndpoints<ApplicationUser>()
-            .AddEntityFrameworkStores<HevySyncDbContext>();
-
-        return services;
-    }
 
     public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration)
     {

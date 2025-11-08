@@ -6,9 +6,9 @@ using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.HevyTests;
 
+[Collection("Integration Tests")]
 public class HevyTests(
     WebHostFixture webHostFixture)
-    : IClassFixture<WebHostFixture>
 {
     private readonly HttpClient _client = webHostFixture.GetHttpClient();
 

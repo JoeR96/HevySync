@@ -1,16 +1,22 @@
 using FluentValidation.AspNetCore;
 using HevySync;
+using HevySync.Application;
 using HevySync.Configuration;
 using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Hevy;
-using HevySync.Identity;
+using HevySync.Infrastructure;
+using HevySync.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthorization()
-    .AddIdentityServices()
+    .AddIdentityApiEndpoints<ApplicationUser>()
+    .AddEntityFrameworkStores<HevySync.Infrastructure.Persistence.HevySyncDbContext>();
+
+builder.Services
+    .AddApplication()
+    .AddInfrastructure(builder.Configuration)
     .AddDomainServices()
-    .AddDataServices(builder.Configuration)
     .AddHevyApiClient(builder.Configuration)
     .AddOptions(builder.Configuration)
     .AddSwagger()

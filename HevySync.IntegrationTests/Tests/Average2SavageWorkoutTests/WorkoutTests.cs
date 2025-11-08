@@ -1,3 +1,4 @@
+using HevySync.Application.Workouts.Commands.GenerateWeekOne;
 using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
@@ -9,9 +10,9 @@ using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
 
+[Collection("Integration Tests")]   
 public class WorkoutTests(
     WebHostFixture webHostFixture)
-    : IClassFixture<WebHostFixture>
 {
     private readonly HttpClient _client = webHostFixture.GetHttpClient();
 
@@ -76,14 +77,84 @@ public class WorkoutTests(
 
         await Task.WhenAll(exerciseTasks);
 
+        // Generate week one sessions
         var createWeekOneEndpoint = Average2SavageEndpoint.WorkoutCreateWeekOne.GetFullRoutePath();
 
-        var createdWeekOneResponse = await _client.PostAsync<SyncHevyWorkoutsRequest>(
+        var createdWeekOneResponse = await _client.PostAsync<Dictionary<int, List<Application.Workouts.Commands.GenerateWeekOne.SessionExerciseDto>>>(
             createWeekOneEndpoint,
-            new SyncHevyWorkoutsRequest
+            new GenerateWeekOneRequest
             {
                 WorkoutId = response.Id
             });
+
+        // Validate week one sessions were generated
+        createdWeekOneResponse.ShouldNotBeNull();
+        createdWeekOneResponse.Count.ShouldBe(5); // 5 days in the workout
+
+        // Validate each day has exercises
+        foreach (var day in createdWeekOneResponse.Keys)
+        {
+            var dayExercises = createdWeekOneResponse[day];
+            dayExercises.ShouldNotBeNull();
+            dayExercises.Count.ShouldBeGreaterThan(0);
+
+            // Validate each exercise has sets
+            foreach (var exercise in dayExercises)
+            {
+                exercise.ExerciseTemplateId.ShouldNotBeNullOrEmpty();
+                exercise.Sets.ShouldNotBeNull();
+                exercise.Sets.Count.ShouldBeGreaterThan(0);
+
+                // Validate each set has weight and reps
+                foreach (var set in exercise.Sets)
+                {
+                    set.WeightKg.ShouldBeGreaterThan(0);
+                    set.Reps.ShouldBeGreaterThan(0);
+                }
+            }
+        }
+
+        // Complete day 1 with successful performance
+        var completeDayEndpoint = Average2SavageEndpoint.WorkoutCompleteDay.GetFullRoutePath();
+
+        // Get exercises for day 1
+        var day1Exercises = response.Exercises.Where(e => e.Day == 1).OrderBy(e => e.Order).ToList();
+        var day1GeneratedExercises = createdWeekOneResponse[1];
+
+        // Create performance data for each exercise
+        // Match exercises by their order since they're both ordered the same way
+        var exercisePerformances = day1Exercises.Zip(day1GeneratedExercises, (exercise, generatedExercise) =>
+        {
+            return new ExercisePerformanceRequest
+            {
+                ExerciseId = exercise.Id,
+                CompletedSets = generatedExercise.Sets.Select(s => new CompletedSetRequest
+                {
+                    WeightKg = s.WeightKg,
+                    Reps = s.Reps
+                }).ToList(),
+                PerformanceResult = "Success" // All exercises completed successfully
+            };
+        }).ToList();
+
+        var completeDayRequest = new CompleteWorkoutDayRequest
+        {
+            WorkoutId = response.Id,
+            ExercisePerformances = exercisePerformances
+        };
+
+        var completeDayResponse = await _client.PostAsync<CompleteWorkoutDayResponse>(
+            completeDayEndpoint,
+            completeDayRequest);
+
+        // Validate completion response
+        completeDayResponse.ShouldNotBeNull();
+        completeDayResponse.WorkoutId.ShouldBe(response.Id);
+        completeDayResponse.CompletedWeek.ShouldBe(1);
+        completeDayResponse.CompletedDay.ShouldBe(1);
+        completeDayResponse.NewWeek.ShouldBe(1);
+        completeDayResponse.NewDay.ShouldBe(2); // Should advance to day 2
+        completeDayResponse.WeekCompleted.ShouldBeFalse(); // Week 1 not completed yet
     }
 
 

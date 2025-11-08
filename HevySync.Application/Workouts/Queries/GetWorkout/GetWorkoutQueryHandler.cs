@@ -1,27 +1,19 @@
-using HevySync.Application.Common;
 using HevySync.Application.DTOs;
+using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
 using HevySync.Domain.Repositories;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Queries.GetWorkout;
 
-public sealed class GetWorkoutQueryHandler : IQueryHandler<GetWorkoutQuery, WorkoutDto?>
+public sealed class GetWorkoutQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetWorkoutQuery, WorkoutDto?>
 {
-    private readonly IWorkoutRepository _workoutRepository;
-
-    public GetWorkoutQueryHandler(IWorkoutRepository workoutRepository)
+    public async Task<WorkoutDto?> Handle(GetWorkoutQuery query, CancellationToken cancellationToken)
     {
-        _workoutRepository = workoutRepository;
-    }
-
-    public async Task<WorkoutDto?> HandleAsync(GetWorkoutQuery query, CancellationToken cancellationToken = default)
-    {
-        var workout = await _workoutRepository.GetByIdWithExercisesAsync(query.WorkoutId, cancellationToken);
+        var workout = await unitOfWork.Workouts.GetByIdAsync(query.WorkoutId, cancellationToken);
 
         if (workout == null)
-        {
             return null;
-        }
 
         return new WorkoutDto
         {
@@ -43,8 +35,6 @@ public sealed class GetWorkoutQueryHandler : IQueryHandler<GetWorkoutQuery, Work
                 Day = e.Day,
                 Order = e.Order,
                 NumberOfSets = e.NumberOfSets,
-                BodyCategory = e.BodyCategory?.ToString(),
-                EquipmentType = e.EquipmentType?.ToString(),
                 Progression = e.Progression switch
                 {
                     LinearProgressionStrategy lp => new LinearProgressionDto
@@ -65,7 +55,8 @@ public sealed class GetWorkoutQueryHandler : IQueryHandler<GetWorkoutQuery, Work
                         MaximumReps = rps.RepRange.MaximumReps,
                         StartingSetCount = rps.StartingSetCount,
                         TargetSetCount = rps.TargetSetCount,
-                        StartingWeight = rps.StartingWeight
+                        StartingWeight = rps.StartingWeight,
+                        WeightProgression = rps.WeightProgression
                     },
                     _ => throw new InvalidOperationException($"Unknown progression type: {e.Progression.GetType().Name}")
                 }
@@ -73,4 +64,3 @@ public sealed class GetWorkoutQueryHandler : IQueryHandler<GetWorkoutQuery, Work
         };
     }
 }
-

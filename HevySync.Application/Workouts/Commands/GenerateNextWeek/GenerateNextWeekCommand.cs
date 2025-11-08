@@ -1,35 +1,17 @@
-using HevySync.Application.Common;
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
-using HevySync.Domain.ValueObjects;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Commands.GenerateNextWeek;
 
-/// <summary>
-/// Command to generate the next week of a workout program.
-/// Applies progression based on the previous week's performance.
-/// </summary>
-public sealed record GenerateNextWeekCommand : ICommand<Dictionary<int, List<SessionExerciseDto>>>
-{
-    public Guid WorkoutId { get; init; }
-    public List<ExercisePerformanceDto> WeekPerformances { get; init; } = new();
-}
+public sealed record GenerateNextWeekCommand(
+    Guid WorkoutId,
+    List<ExercisePerformanceDto> WeekPerformances) : IRequest<Dictionary<int, List<SessionExerciseDto>>>;
 
-/// <summary>
-/// DTO representing exercise performance for the week.
-/// </summary>
-public record ExercisePerformanceDto
-{
-    public Guid ExerciseId { get; init; }
-    public List<CompletedSetDto> CompletedSets { get; init; } = new();
-    public string PerformanceResult { get; init; } = string.Empty; // "Success", "Maintained", "Failed"
-}
+public sealed record ExercisePerformanceDto(
+    Guid ExerciseId,
+    List<CompletedSetDto> CompletedSets,
+    string PerformanceResult);
 
-/// <summary>
-/// DTO representing a completed set.
-/// </summary>
-public record CompletedSetDto
-{
-    public decimal WeightKg { get; init; }
-    public int Reps { get; init; }
-}
-
+public sealed record CompletedSetDto(
+    decimal WeightKg,
+    int Reps);

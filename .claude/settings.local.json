@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(Select-String -Pattern \"error\" -Context 2,0)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(utils.ts)",
+      "Bash(.env.local)",
+      "Bash(workoutStore.ts)",
+      "Bash(LoginPage.tsx)",
+      "Bash(DashboardPage.tsx)",
+      "Bash(CreateWorkoutPage.tsx)",
+      "Bash(README.md)",
+      "Bash(dotnet restore:*)",
+      "Bash(ActivityTests.cs)",
+      "Bash(RepsPerSetStrategyTests.cs)",
+      "Bash(CreateWorkoutCommandHandlerTests.cs)",
+      "Bash(CompleteWorkoutDayCommandHandlerTests.cs)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

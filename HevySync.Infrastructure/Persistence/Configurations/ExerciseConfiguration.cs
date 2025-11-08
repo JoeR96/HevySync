@@ -1,5 +1,4 @@
 using HevySync.Domain.Entities;
-using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,9 +14,8 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.Id)
-            .ValueGeneratedNever(); // We generate IDs in the domain
+            .ValueGeneratedNever();
 
-        // Map ExerciseName value object
         builder.Property(e => e.Name)
             .HasConversion(
                 name => name.Value,
@@ -29,7 +27,6 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.ExerciseTemplateId)
             .IsRequired();
 
-        // Map RestTimer value object
         builder.Property(e => e.RestTimer)
             .HasConversion(
                 timer => timer.Seconds,
@@ -46,19 +43,9 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(e => e.NumberOfSets)
             .IsRequired();
 
-        // Map enums
-        builder.Property(e => e.BodyCategory)
-            .HasConversion<string>()
-            .IsRequired(false);
-
-        builder.Property(e => e.EquipmentType)
-            .HasConversion<string>()
-            .IsRequired(false);
-
         builder.Property(e => e.WorkoutId)
             .IsRequired();
 
-        // Configure relationship with progression
         builder.HasOne(e => e.Progression)
             .WithOne()
             .HasForeignKey<ExerciseProgression>(p => p.ExerciseId)

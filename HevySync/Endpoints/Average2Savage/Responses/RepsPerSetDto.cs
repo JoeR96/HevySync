@@ -12,4 +12,5 @@ public record RepsPerSetDto : ExerciseDetailDto
     public int TargetSetCount { get; set; }
     public ExerciseProgram Program { get; set; }
     public decimal StartingWeight { get; set; }
+    public decimal WeightProgression { get; set; }
 }

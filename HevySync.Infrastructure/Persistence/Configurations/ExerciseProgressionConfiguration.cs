@@ -65,7 +65,6 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
 {
     public void Configure(EntityTypeBuilder<RepsPerSetStrategy> builder)
     {
-        // Map RepRange value object as owned type
         builder.OwnsOne(rps => rps.RepRange, repRange =>
         {
             repRange.Property(rr => rr.MinimumReps)
@@ -88,6 +87,14 @@ public class RepsPerSetStrategyConfiguration : IEntityTypeConfiguration<RepsPerS
             .IsRequired();
 
         builder.Property(rps => rps.StartingWeight)
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
+
+        builder.Property(rps => rps.WeightProgression)
+            .HasConversion(
+                wp => wp.Value,
+                value => WeightProgression.Create(value))
+            .HasColumnName("RepsPerSetWeightProgression")
             .HasColumnType("decimal(18,2)")
             .IsRequired();
     }

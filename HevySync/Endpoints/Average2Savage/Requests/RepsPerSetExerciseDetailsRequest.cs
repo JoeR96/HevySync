@@ -10,6 +10,7 @@ public record RepsPerSetExerciseDetailsRequest(
     int NumberOfSets,
     int TotalNumberOfSets,
     decimal StartingWeight,
+    decimal WeightProgression,
     ExerciseProgram Program
 ) : ExerciseDetailsRequest;
 
@@ -40,5 +41,9 @@ public class RepsPerSetExerciseDetailsRequestValidator : AbstractValidator<RepsP
         RuleFor(x => x.TotalNumberOfSets)
             .GreaterThanOrEqualTo(x => x.NumberOfSets)
             .WithMessage("Total number of sets must be greater than or equal to number of sets.");
+
+        RuleFor(x => x.WeightProgression)
+            .GreaterThan(0)
+            .WithMessage("Weight progression must be greater than 0.");
     }
 }

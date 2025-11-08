@@ -1,49 +1,37 @@
-using HevySync.Application.Common;
 using HevySync.Application.DTOs;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Commands.CreateWorkout;
 
-public sealed record CreateWorkoutCommand : ICommand<WorkoutDto>
-{
-    public string WorkoutName { get; init; } = string.Empty;
-    public Guid UserId { get; init; }
-    public int WorkoutDaysInWeek { get; init; }
-    public List<CreateExerciseDto> Exercises { get; init; } = new();
-}
+public sealed record CreateWorkoutCommand(
+    string WorkoutName,
+    Guid UserId,
+    int WorkoutDaysInWeek,
+    List<CreateExerciseDto> Exercises) : IRequest<WorkoutDto>;
 
-public record CreateExerciseDto
-{
-    public string ExerciseName { get; init; } = string.Empty;
-    public string ExerciseTemplateId { get; init; } = string.Empty;
-    public int RestTimer { get; init; }
-    public int Day { get; init; }
-    public int Order { get; init; }
-    public int NumberOfSets { get; init; }
-    public string? BodyCategory { get; init; }
-    public string? EquipmentType { get; init; }
-    public CreateProgressionDto Progression { get; init; } = null!;
-}
+public sealed record CreateExerciseDto(
+    string ExerciseName,
+    string ExerciseTemplateId,
+    int RestTimer,
+    int Day,
+    int Order,
+    int NumberOfSets,
+    CreateProgressionDto Progression);
 
-public abstract record CreateProgressionDto
-{
-    public string ProgramType { get; init; } = string.Empty;
-}
+public abstract record CreateProgressionDto(string ProgramType);
 
-public record CreateLinearProgressionDto : CreateProgressionDto
-{
-    public decimal TrainingMax { get; init; }
-    public decimal WeightProgression { get; init; }
-    public int AttemptsBeforeDeload { get; init; }
-    public bool IsPrimary { get; init; }
-}
+public sealed record CreateLinearProgressionDto(
+    decimal TrainingMax,
+    decimal WeightProgression,
+    int AttemptsBeforeDeload,
+    bool IsPrimary) : CreateProgressionDto("LinearProgression");
 
-public record CreateRepsPerSetDto : CreateProgressionDto
-{
-    public int MinimumReps { get; init; }
-    public int TargetReps { get; init; }
-    public int MaximumReps { get; init; }
-    public int StartingSetCount { get; init; }
-    public int TargetSetCount { get; init; }
-    public decimal StartingWeight { get; init; }
-}
+public sealed record CreateRepsPerSetDto(
+    int MinimumReps,
+    int TargetReps,
+    int MaximumReps,
+    int StartingSetCount,
+    int TargetSetCount,
+    decimal StartingWeight,
+    decimal WeightProgression) : CreateProgressionDto("RepsPerSet");
 

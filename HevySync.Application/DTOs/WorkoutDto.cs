@@ -25,8 +25,6 @@ public record ExerciseDto
     public int Day { get; init; }
     public int Order { get; init; }
     public int NumberOfSets { get; init; }
-    public string? BodyCategory { get; init; }
-    public string? EquipmentType { get; init; }
     public ExerciseProgressionDto Progression { get; init; } = null!;
 }
 
@@ -52,5 +50,5 @@ public record RepsPerSetDto : ExerciseProgressionDto
     public int StartingSetCount { get; init; }
     public int TargetSetCount { get; init; }
     public decimal StartingWeight { get; init; }
+    public decimal WeightProgression { get; init; }
 }
-

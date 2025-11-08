@@ -40,6 +40,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
             root.GetProperty("NumberOfSets").GetInt32(),
             root.GetProperty("TotalNumberOfSets").GetInt32(),
             root.GetProperty("StartingWeight").GetDecimal(),
+            root.GetProperty("WeightProgression").GetDecimal(),
             ExerciseProgram.Average2SavageRepsPerSet
         );
     }

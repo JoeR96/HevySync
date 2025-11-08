@@ -1,43 +1,25 @@
-using HevySync.Application.Common;
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
-using HevySync.Domain.Aggregates;
 using HevySync.Domain.DomainServices;
-using HevySync.Domain.Entities;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Commands.GenerateNextWeek;
 
-/// <summary>
-/// Handler for generating the next week of a workout program.
-/// Applies progression based on performance and generates new sets.
-/// </summary>
-public sealed class GenerateNextWeekCommandHandler : ICommandHandler<GenerateNextWeekCommand, Dictionary<int, List<SessionExerciseDto>>>
+public sealed class GenerateNextWeekCommandHandler(
+    IUnitOfWork unitOfWork,
+    ISetGenerationService setGenerationService)
+    : IRequestHandler<GenerateNextWeekCommand, Dictionary<int, List<SessionExerciseDto>>>
 {
-    private readonly IWorkoutRepository _workoutRepository;
-    private readonly ISetGenerationService _setGenerationService;
-
-    public GenerateNextWeekCommandHandler(
-        IWorkoutRepository workoutRepository,
-        ISetGenerationService setGenerationService)
-    {
-        _workoutRepository = workoutRepository;
-        _setGenerationService = setGenerationService;
-    }
-
-    public async Task<Dictionary<int, List<SessionExerciseDto>>> HandleAsync(
+    public async Task<Dictionary<int, List<SessionExerciseDto>>> Handle(
         GenerateNextWeekCommand command,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        // Get the workout with exercises
-        var workout = await _workoutRepository.GetByIdWithExercisesAsync(command.WorkoutId, cancellationToken);
+        var workout = await unitOfWork.Workouts.GetByIdAsync(command.WorkoutId, cancellationToken);
 
         if (workout == null)
-        {
             throw new InvalidOperationException($"Workout with ID {command.WorkoutId} not found");
-        }
 
-        // Convert DTOs to domain value objects
         var weekPerformances = command.WeekPerformances.Select(p =>
         {
             var completedSets = p.CompletedSets.Select(s => Set.Create(s.WeightKg, s.Reps)).ToList();
@@ -45,13 +27,11 @@ public sealed class GenerateNextWeekCommandHandler : ICommandHandler<GenerateNex
             return ExercisePerformance.Create(p.ExerciseId, completedSets, result);
         }).ToList();
 
-        // Apply progression to exercises based on performance
         workout.ApplyProgression(weekPerformances);
 
-        // Save the updated workout
-        await _workoutRepository.UpdateAsync(workout, cancellationToken);
+        unitOfWork.Workouts.Update(workout);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Generate sets for all days in the week
         var weekSessions = new Dictionary<int, List<SessionExerciseDto>>();
 
         for (int day = 1; day <= workout.Activity.WorkoutsInWeek; day++)
@@ -61,22 +41,16 @@ public sealed class GenerateNextWeekCommandHandler : ICommandHandler<GenerateNex
 
             foreach (var exercise in exercisesForDay)
             {
-                var sets = await _setGenerationService.GenerateWeekOneSetsAsync(
+                var sets = await setGenerationService.GenerateWeekOneSetsAsync(
                     exercise.Progression,
                     workout.Activity,
                     cancellationToken);
 
-                sessionExercises.Add(new SessionExerciseDto
-                {
-                    ExerciseTemplateId = exercise.ExerciseTemplateId,
-                    RestSeconds = exercise.RestTimer.Seconds,
-                    Notes = string.Empty,
-                    Sets = sets.Select(s => new SessionSetDto
-                    {
-                        WeightKg = s.WeightKg,
-                        Reps = s.Reps
-                    }).ToList()
-                });
+                sessionExercises.Add(new SessionExerciseDto(
+                    exercise.ExerciseTemplateId,
+                    exercise.RestTimer.Seconds,
+                    string.Empty,
+                    sets.Select(s => new SessionSetDto(s.WeightKg, s.Reps)).ToList()));
             }
 
             weekSessions[day] = sessionExercises;
@@ -85,4 +59,3 @@ public sealed class GenerateNextWeekCommandHandler : ICommandHandler<GenerateNex
         return weekSessions;
     }
 }
-

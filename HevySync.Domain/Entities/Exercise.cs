@@ -1,5 +1,4 @@
 using HevySync.Domain.Common;
-using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 
 namespace HevySync.Domain.Entities;
@@ -16,11 +15,8 @@ public sealed class Exercise : Entity<Guid>
     public int Day { get; private set; }
     public int Order { get; private set; }
     public int NumberOfSets { get; private set; }
-    public BodyCategory? BodyCategory { get; private set; }
-    public EquipmentType? EquipmentType { get; private set; }
     public Guid WorkoutId { get; private set; }
-    
-    // Navigation property for progression strategy
+
     public ExerciseProgression Progression { get; private set; } = null!;
 
     // EF Core constructor
@@ -37,9 +33,7 @@ public sealed class Exercise : Entity<Guid>
         int order,
         int numberOfSets,
         Guid workoutId,
-        ExerciseProgression progression,
-        BodyCategory? bodyCategory = null,
-        EquipmentType? equipmentType = null) : base(id)
+        ExerciseProgression progression) : base(id)
     {
         Name = name;
         ExerciseTemplateId = exerciseTemplateId;
@@ -49,8 +43,6 @@ public sealed class Exercise : Entity<Guid>
         NumberOfSets = numberOfSets;
         WorkoutId = workoutId;
         Progression = progression;
-        BodyCategory = bodyCategory;
-        EquipmentType = equipmentType;
     }
 
     public static Exercise Create(
@@ -61,33 +53,22 @@ public sealed class Exercise : Entity<Guid>
         int order,
         int numberOfSets,
         Guid workoutId,
-        ExerciseProgression progression,
-        BodyCategory? bodyCategory = null,
-        EquipmentType? equipmentType = null)
+        ExerciseProgression progression)
     {
         if (string.IsNullOrWhiteSpace(exerciseTemplateId))
-        {
             throw new ArgumentException("Exercise template ID cannot be empty", nameof(exerciseTemplateId));
-        }
 
         if (day < 1)
-        {
             throw new ArgumentException("Day must be at least 1", nameof(day));
-        }
 
         if (order < 0)
-        {
             throw new ArgumentException("Order cannot be negative", nameof(order));
-        }
 
         if (numberOfSets < 1)
-        {
             throw new ArgumentException("Number of sets must be at least 1", nameof(numberOfSets));
-        }
 
         var exerciseId = Guid.NewGuid();
 
-        // Set the exercise ID on the progression
         ExerciseProgression progressionWithExerciseId = progression switch
         {
             LinearProgressionStrategy lp => LinearProgressionStrategy.Create(
@@ -101,7 +82,8 @@ public sealed class Exercise : Entity<Guid>
                 rps.RepRange,
                 rps.StartingSetCount,
                 rps.TargetSetCount,
-                rps.StartingWeight),
+                rps.StartingWeight,
+                rps.WeightProgression),
             _ => throw new InvalidExerciseException($"Unsupported progression type: {progression.GetType().Name}")
         };
 
@@ -114,9 +96,7 @@ public sealed class Exercise : Entity<Guid>
             order,
             numberOfSets,
             workoutId,
-            progressionWithExerciseId,
-            bodyCategory,
-            equipmentType);
+            progressionWithExerciseId);
     }
 }
 

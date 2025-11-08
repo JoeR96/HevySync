@@ -1,66 +1,43 @@
-using HevySync.Application.Common;
 using HevySync.Application.DTOs;
 using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
-using HevySync.Domain.Enums;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Commands.CreateWorkout;
 
-public sealed class CreateWorkoutCommandHandler : ICommandHandler<CreateWorkoutCommand, WorkoutDto>
+public sealed class CreateWorkoutCommandHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateWorkoutCommand, WorkoutDto>
 {
-    private readonly IWorkoutRepository _workoutRepository;
-
-    public CreateWorkoutCommandHandler(IWorkoutRepository workoutRepository)
+    public async Task<WorkoutDto> Handle(CreateWorkoutCommand command, CancellationToken cancellationToken)
     {
-        _workoutRepository = workoutRepository;
-    }
+        if (await unitOfWork.Activities.AnyAsync(a => a.UserId == command.UserId && a.Status == ActivityStatus.Active, cancellationToken))
+            throw new InvalidOperationException("User already has an active workout activity");
 
-    public async Task<WorkoutDto> HandleAsync(CreateWorkoutCommand command, CancellationToken cancellationToken = default)
-    {
-        // Create workout name value object
         var workoutName = WorkoutName.Create(command.WorkoutName);
-
-        // Create exercises
         var exercises = new List<Exercise>();
-        var workoutId = Guid.NewGuid(); // Temporary ID for exercise creation
+        var workoutId = Guid.NewGuid();
 
         foreach (var exerciseDto in command.Exercises)
         {
             var exerciseName = ExerciseName.Create(exerciseDto.ExerciseName);
             var restTimer = RestTimer.Create(exerciseDto.RestTimer);
 
-            // Parse enums
-            BodyCategory? bodyCategory = null;
-            if (!string.IsNullOrEmpty(exerciseDto.BodyCategory) && 
-                Enum.TryParse<BodyCategory>(exerciseDto.BodyCategory, out var bc))
-            {
-                bodyCategory = bc;
-            }
-
-            EquipmentType? equipmentType = null;
-            if (!string.IsNullOrEmpty(exerciseDto.EquipmentType) && 
-                Enum.TryParse<EquipmentType>(exerciseDto.EquipmentType, out var et))
-            {
-                equipmentType = et;
-            }
-
-            // Create progression strategy
             ExerciseProgression progression = exerciseDto.Progression switch
             {
                 CreateLinearProgressionDto lp => LinearProgressionStrategy.Create(
-                    Guid.Empty, // Will be set by Exercise.Create
+                    Guid.Empty,
                     TrainingMax.Create(lp.TrainingMax),
                     WeightProgression.Create(lp.WeightProgression),
                     lp.AttemptsBeforeDeload,
                     lp.IsPrimary),
                 CreateRepsPerSetDto rps => RepsPerSetStrategy.Create(
-                    Guid.Empty, // Will be set by Exercise.Create
+                    Guid.Empty,
                     RepRange.Create(rps.MinimumReps, rps.TargetReps, rps.MaximumReps),
                     rps.StartingSetCount,
                     rps.TargetSetCount,
-                    rps.StartingWeight),
+                    rps.StartingWeight,
+                    WeightProgression.Create(rps.WeightProgression)),
                 _ => throw new InvalidOperationException($"Unknown progression type: {exerciseDto.Progression.GetType().Name}")
             };
 
@@ -72,31 +49,28 @@ public sealed class CreateWorkoutCommandHandler : ICommandHandler<CreateWorkoutC
                 exerciseDto.Order,
                 exerciseDto.NumberOfSets,
                 workoutId,
-                progression,
-                bodyCategory,
-                equipmentType);
+                progression);
 
             exercises.Add(exercise);
         }
 
-        // Create workout aggregate
         var workout = Workout.Create(
             workoutName,
             command.UserId,
             command.WorkoutDaysInWeek,
             exercises);
 
-        // Persist
-        await _workoutRepository.AddAsync(workout, cancellationToken);
-        await _workoutRepository.SaveChangesAsync(cancellationToken);
+        var activity = Activity.Create(command.UserId, workout.Id, workoutName);
 
-        // Map to DTO
+        await unitOfWork.Workouts.AddAsync(workout, cancellationToken);
+        await unitOfWork.Activities.AddAsync(activity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return MapToDto(workout);
     }
 
-    private static WorkoutDto MapToDto(Workout workout)
-    {
-        return new WorkoutDto
+    private static WorkoutDto MapToDto(Workout workout) =>
+        new()
         {
             Id = workout.Id,
             Name = workout.Name,
@@ -116,8 +90,6 @@ public sealed class CreateWorkoutCommandHandler : ICommandHandler<CreateWorkoutC
                 Day = e.Day,
                 Order = e.Order,
                 NumberOfSets = e.NumberOfSets,
-                BodyCategory = e.BodyCategory?.ToString(),
-                EquipmentType = e.EquipmentType?.ToString(),
                 Progression = e.Progression switch
                 {
                     LinearProgressionStrategy lp => new LinearProgressionDto
@@ -138,12 +110,12 @@ public sealed class CreateWorkoutCommandHandler : ICommandHandler<CreateWorkoutC
                         MaximumReps = rps.RepRange.MaximumReps,
                         StartingSetCount = rps.StartingSetCount,
                         TargetSetCount = rps.TargetSetCount,
-                        StartingWeight = rps.StartingWeight
+                        StartingWeight = rps.StartingWeight,
+                        WeightProgression = rps.WeightProgression
                     },
                     _ => throw new InvalidOperationException($"Unknown progression type: {e.Progression.GetType().Name}")
                 }
             }).ToList()
         };
-    }
 }
 

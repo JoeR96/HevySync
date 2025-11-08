@@ -1,23 +1,15 @@
-using HevySync.Application.Common;
+using MediatR;
 
 namespace HevySync.Application.Workouts.Commands.GenerateWeekOne;
 
-public sealed record GenerateWeekOneCommand : ICommand<Dictionary<int, List<SessionExerciseDto>>>
-{
-    public Guid WorkoutId { get; init; }
-}
+public sealed record GenerateWeekOneCommand(Guid WorkoutId) : IRequest<Dictionary<int, List<SessionExerciseDto>>>;
 
-public record SessionExerciseDto
-{
-    public string ExerciseTemplateId { get; init; } = string.Empty;
-    public int RestSeconds { get; init; }
-    public string Notes { get; init; } = string.Empty;
-    public List<SessionSetDto> Sets { get; init; } = new();
-}
+public sealed record SessionExerciseDto(
+    string ExerciseTemplateId,
+    int RestSeconds,
+    string Notes,
+    List<SessionSetDto> Sets);
 
-public record SessionSetDto
-{
-    public decimal WeightKg { get; init; }
-    public int Reps { get; init; }
-}
-
+public sealed record SessionSetDto(
+    decimal WeightKg,
+    int Reps);

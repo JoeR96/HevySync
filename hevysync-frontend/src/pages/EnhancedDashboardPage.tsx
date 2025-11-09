@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useTheme } from '../contexts/ThemeContext';
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Calendar, Dumbbell, Clock, Award, Activity, ChevronRight, Moon, Sun, Weight, Repeat, Target } from 'lucide-react';
 
 // Temporary body part mapping - will be replaced with backend data
@@ -163,7 +163,7 @@ export default function EnhancedDashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-dark-text text-sm font-medium">Active Workout</p>
@@ -178,7 +178,7 @@ export default function EnhancedDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-dark-text text-sm font-medium">Total Workouts</p>
@@ -191,7 +191,7 @@ export default function EnhancedDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-dark-text text-sm font-medium">Total Exercises</p>
@@ -204,7 +204,7 @@ export default function EnhancedDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-dark-text text-sm font-medium">Weeks Trained</p>
@@ -220,24 +220,62 @@ export default function EnhancedDashboardPage() {
 
         {/* Mosaic Dashboard Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Tracked Exercise Widget - Placeholder */}
-          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border border-dark-border">
+          {/* Tracked Exercise Widget - Squat Progress */}
+          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border-2 border-dark-elevated hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center">
-                <Target className="h-5 w-5 mr-2 text-brand-orange" />
-                Tracked Exercise
-              </h3>
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center">
+                  <Target className="h-5 w-5 mr-2 text-brand-orange" />
+                  Squat Progress
+                </h3>
+                <p className="text-xs text-dark-text mt-1">Training Max: 140 kg</p>
+              </div>
             </div>
-            <div className="text-center py-8">
-              <p className="text-dark-text">Select an exercise to track its progression</p>
-              <button className="mt-4 px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-600 transition-colors">
-                Track Exercise
-              </button>
-            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={[
+                { week: 'W4', weight: 125 },
+                { week: 'W5', weight: 127.5 },
+                { week: 'W6', weight: 130 },
+                { week: 'W7', weight: 130 },
+                { week: 'W8', weight: 132.5 },
+                { week: 'W9', weight: 135 },
+                { week: 'W10', weight: 137.5 },
+                { week: 'W11', weight: 140 },
+              ]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#454545" />
+                <XAxis 
+                  dataKey="week" 
+                  stroke="#818181" 
+                  tick={{ fill: '#818181', fontSize: 12 }}
+                />
+                <YAxis 
+                  stroke="#818181" 
+                  tick={{ fill: '#818181', fontSize: 12 }}
+                  domain={['dataMin - 5', 'dataMax + 5']}
+                />
+                <Tooltip
+                  contentStyle={{ 
+                    backgroundColor: '#313131', 
+                    border: '1px solid #454545', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any) => [`${value} kg`, 'Weight']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="weight"
+                  stroke="#ff9900"
+                  strokeWidth={3}
+                  dot={{ fill: '#ff9900', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
           {/* Body Parts Distribution Pie Chart */}
-          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border border-dark-border">
+          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border-2 border-dark-elevated hover:border-brand-orange/30 transition-all">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white flex items-center">
                 <Target className="h-5 w-5 mr-2 text-brand-orange" />
@@ -257,7 +295,7 @@ export default function EnhancedDashboardPage() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {bodyPartsData.map((entry, index) => (
+                    {bodyPartsData.map((_entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

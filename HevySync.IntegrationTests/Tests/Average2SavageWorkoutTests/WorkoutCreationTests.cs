@@ -10,7 +10,7 @@ using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
 
-[Collection("Workout Integration Tests")]
+[Collection("Integration Tests")]
 public class WorkoutCreationTests(WebHostFixture webHostFixture)
 {
     private readonly HttpClient _client = webHostFixture.GetHttpClient();

@@ -75,6 +75,7 @@ public class ExerciseDetailsRequestConverter : JsonConverter<ExerciseDetailsRequ
                 writer.WriteNumber(nameof(reps.NumberOfSets), reps.NumberOfSets);
                 writer.WriteNumber(nameof(reps.TotalNumberOfSets), reps.TotalNumberOfSets);
                 writer.WriteNumber(nameof(reps.StartingWeight), reps.StartingWeight);
+                writer.WriteNumber(nameof(reps.WeightProgression), reps.WeightProgression);
                 break;
 
             case LinearProgressionExerciseDetailsRequest linear:

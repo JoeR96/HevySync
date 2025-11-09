@@ -1,3 +1,4 @@
+using HevySync.Application.DTOs;
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
 using HevySync.Endpoints.Average2Savage;
 using HevySync.Endpoints.Average2Savage.Enums;
@@ -5,12 +6,13 @@ using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.IntegrationTests.Bogus;
 using HevySync.IntegrationTests.Extensions;
+using HevySync.IntegrationTests.Fixtures;
 using HevySync.Services;
 using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
 
-[Collection("Integration Tests")]   
+[Collection("Integration Tests")]
 public class WorkoutTests(
     WebHostFixture webHostFixture)
 {

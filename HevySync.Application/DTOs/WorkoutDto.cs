@@ -14,6 +14,9 @@ public record WorkoutActivityDto
     public int Week { get; init; }
     public int Day { get; init; }
     public int WorkoutsInWeek { get; init; }
+    public string? Status { get; init; }
+    public DateTime? StartedAt { get; init; }
+    public DateTime? CompletedAt { get; init; }
 }
 
 public record ExerciseDto

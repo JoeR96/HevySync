@@ -14,10 +14,28 @@ namespace HevySync.IntegrationTests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private PostgreSqlContainer _postgresContainer = null!;
+    private static readonly PostgreSqlContainer _postgresContainer = new PostgreSqlBuilder()
+        .WithDatabase("hevysync")
+        .WithUsername("postgres")
+        .WithPassword("password")
+        .WithCleanUp(true)
+        .Build();
+
+    private static bool _containerStarted = false;
+    private static readonly object _lock = new object();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Ensure container is started before configuration
+        lock (_lock)
+        {
+            if (!_containerStarted)
+            {
+                _postgresContainer.StartAsync().GetAwaiter().GetResult();
+                _containerStarted = true;
+            }
+        }
+
         builder.ConfigureTestServices(services =>
         {
             services.ReplaceDbContextWithPostgresTestContainer<HevySyncDbContext>(
@@ -27,6 +45,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 {
                     options.DefaultAuthenticateScheme = "TestScheme";
                     options.DefaultChallengeScheme = "TestScheme";
+                    options.DefaultScheme = "TestScheme";
                 })
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", options => { });
 
@@ -53,13 +72,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public async Task StarContainerAsync()
     {
-        _postgresContainer = new PostgreSqlBuilder()
-            .WithDatabase("hevysync")
-            .WithUsername("postgres")
-            .WithPassword("password")
-            .WithCleanUp(true)
-            .Build();
-
-        await _postgresContainer.StartAsync();
+        // Container is now started in ConfigureWebHost
+        await Task.CompletedTask;
     }
 }

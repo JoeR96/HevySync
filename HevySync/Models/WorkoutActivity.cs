@@ -20,6 +20,9 @@ public record WorkoutActivityDto
     public int Day { get; set; }
     public int WorkoutsInWeek { get; set; }
     public Guid WorkoutId { get; set; }
+    public string? Status { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }
 
 public static class WorkoutActivityMappingExtensions

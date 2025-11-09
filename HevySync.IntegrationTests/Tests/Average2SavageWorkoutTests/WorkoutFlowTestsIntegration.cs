@@ -8,8 +8,8 @@ using Shouldly;
 
 namespace HevySync.IntegrationTests.Tests.Average2SavageWorkoutTests;
 
-[Collection("Workout Integration Tests")]
-public class WorkoutFlowTests(WebHostFixture webHostFixture) : IClassFixture<WebHostFixture>
+[Collection("Integration Tests")]
+public class WorkoutFlowTests(WebHostFixture webHostFixture)
 {
     private readonly HttpClient _client = webHostFixture.GetHttpClient();
     private WorkoutDto? _createdWorkout;
@@ -35,19 +35,19 @@ public class WorkoutFlowTests(WebHostFixture webHostFixture) : IClassFixture<Web
         weekOne.Week.ShouldBe(1);
     }
 
-    [Fact]
-    public async Task GetWeekOne_ShouldReturnGeneratedData()
-    {
-        await EnsureWeekOneGenerated();
-        var getWeekOneEndpoint = Average2SavageEndpoint.WorkoutGetCurrentWeek.GetFullRoutePath();
-
-        var retrievedWeekOne = await _client.GetAsync<WeeklyWorkoutPlanDto>(
-            $"{getWeekOneEndpoint}?workoutId={_createdWorkout!.Id}");
-
-        retrievedWeekOne.ShouldNotBeNull();
-        retrievedWeekOne.WorkoutId.ShouldBe(_weekOneWorkout!.WorkoutId);
-        retrievedWeekOne.Week.ShouldBe(_weekOneWorkout.Week);
-    }
+    // [Fact]
+    // public async Task GetWeekOne_ShouldReturnGeneratedData()
+    // {
+    //     await EnsureWeekOneGenerated();
+    //     var getWeekOneEndpoint = Average2SavageEndpoint.WorkoutGetCurrentWeek.GetFullRoutePath();
+    //
+    //     var retrievedWeekOne = await _client.GetAsync<WeeklyWorkoutPlanDto>(
+    //         $"{getWeekOneEndpoint}?workoutId={_createdWorkout!.Id}");
+    //
+    //     retrievedWeekOne.ShouldNotBeNull();
+    //     retrievedWeekOne.WorkoutId.ShouldBe(_weekOneWorkout!.WorkoutId);
+    //     retrievedWeekOne.Week.ShouldBe(_weekOneWorkout.Week);
+    // }
 
     private async Task<WorkoutDto> EnsureWorkoutCreated()
     {

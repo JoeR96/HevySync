@@ -1,9 +1,9 @@
 using FluentAssertions;
 using HevySync.Domain.Aggregates;
-using HevySync.Domain.Enums;
 using HevySync.Domain.Events;
 using HevySync.Domain.ValueObjects;
 using NUnit.Framework;
+using ActivityException = HevySync.Domain.Aggregates.ActivityException;
 
 namespace HevySync.UnitTests.Domain.Aggregates;
 
@@ -70,27 +70,27 @@ public class ActivityTests
     }
 
     [Test]
-    public void Complete_WhenAlreadyCompleted_ShouldThrowInvalidOperationException()
+    public void Complete_WhenAlreadyCompleted_ShouldThrowActivityException()
     {
         var activity = CreateTestActivity();
         activity.Complete();
 
         var act = () => activity.Complete();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*already completed*");
+        act.Should().Throw<ActivityException>()
+            .WithMessage("*Completed*");
     }
 
     [Test]
-    public void Complete_WhenStopped_ShouldThrowInvalidOperationException()
+    public void Complete_WhenStopped_ShouldThrowActivityException()
     {
         var activity = CreateTestActivity();
         activity.Stop();
 
         var act = () => activity.Complete();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*stopped*");
+        act.Should().Throw<ActivityException>()
+            .WithMessage("*Stopped*");
     }
 
     [Test]
@@ -118,27 +118,27 @@ public class ActivityTests
     }
 
     [Test]
-    public void Stop_WhenAlreadyStopped_ShouldThrowInvalidOperationException()
+    public void Stop_WhenAlreadyStopped_ShouldThrowActivityException()
     {
         var activity = CreateTestActivity();
         activity.Stop();
 
         var act = () => activity.Stop();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*already stopped*");
+        act.Should().Throw<ActivityException>()
+            .WithMessage("*Stopped*");
     }
 
     [Test]
-    public void Stop_WhenCompleted_ShouldThrowInvalidOperationException()
+    public void Stop_WhenCompleted_ShouldThrowActivityException()
     {
         var activity = CreateTestActivity();
         activity.Complete();
 
         var act = () => activity.Stop();
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*completed*");
+        act.Should().Throw<ActivityException>()
+            .WithMessage("*Completed*");
     }
 
     private static Activity CreateTestActivity()

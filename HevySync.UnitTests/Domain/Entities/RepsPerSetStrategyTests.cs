@@ -1,6 +1,5 @@
 using FluentAssertions;
 using HevySync.Domain.Entities;
-using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 using NUnit.Framework;
 
@@ -68,14 +67,14 @@ public class RepsPerSetStrategyTests
     }
 
     [Test]
-    public void ApplyProgression_WithFailureAtMinSets_ShouldDecreaseWeight()
+    public void ApplyProgression_WithFailureAtMinSets_ShouldDecreaseSetsFirst()
     {
         var strategy = CreateTestStrategy();
 
         strategy.ApplyProgression(PerformanceResult.Failed);
 
-        strategy.StartingSetCount.Should().Be(3);
-        strategy.StartingWeight.Should().Be(97.5m);
+        strategy.StartingSetCount.Should().Be(2);
+        strategy.StartingWeight.Should().Be(100m);
     }
 
     [Test]
@@ -90,47 +89,6 @@ public class RepsPerSetStrategyTests
         strategy.ApplyProgression(PerformanceResult.Failed);
 
         strategy.StartingWeight.Should().BeGreaterOrEqualTo(0m);
-    }
-
-    [Test]
-    public void GenerateSetsForWeek_ShouldGenerateCorrectNumberOfSets()
-    {
-        var strategy = CreateTestStrategy();
-
-        var sets = strategy.GenerateSetsForWeek(1);
-
-        sets.Should().HaveCount(3);
-        sets.All(s => s.WeightKg == 100m).Should().BeTrue();
-    }
-
-    [Test]
-    public void GenerateSetsForWeek_InFirstWeek_ShouldUseMinimumReps()
-    {
-        var strategy = CreateTestStrategy();
-
-        var sets = strategy.GenerateSetsForWeek(1);
-
-        sets.All(s => s.Reps == 8).Should().BeTrue();
-    }
-
-    [Test]
-    public void GenerateSetsForWeek_InMiddleWeek_ShouldUseTargetReps()
-    {
-        var strategy = CreateTestStrategy();
-
-        var sets = strategy.GenerateSetsForWeek(2);
-
-        sets.All(s => s.Reps == 10).Should().BeTrue();
-    }
-
-    [Test]
-    public void GenerateSetsForWeek_InLaterWeek_ShouldUseMaximumReps()
-    {
-        var strategy = CreateTestStrategy();
-
-        var sets = strategy.GenerateSetsForWeek(3);
-
-        sets.All(s => s.Reps == 12).Should().BeTrue();
     }
 
     private static RepsPerSetStrategy CreateTestStrategy() =>

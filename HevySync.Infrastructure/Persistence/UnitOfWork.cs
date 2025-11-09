@@ -8,10 +8,10 @@ namespace HevySync.Infrastructure.Persistence;
 public class UnitOfWork(HevySyncDbContext context) : IUnitOfWork
 {
     private IDbContextTransaction? _transaction;
-    private IRepository<Workout, Guid>? _workouts;
+    private IWorkoutRepository? _workouts;
     private IRepository<Activity, Guid>? _activities;
 
-    public IRepository<Workout, Guid> Workouts => _workouts ??= new Repository<Workout, Guid>(context);
+    public IWorkoutRepository Workouts => _workouts ??= new WorkoutRepository(context);
     public IRepository<Activity, Guid> Activities => _activities ??= new Repository<Activity, Guid>(context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>

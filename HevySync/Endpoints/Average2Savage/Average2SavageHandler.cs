@@ -4,6 +4,7 @@ using HevySync.Application.Workouts.Commands.CompleteWorkoutDay;
 using HevySync.Application.Workouts.Commands.CreateWorkout;
 using HevySync.Application.Workouts.Commands.GenerateNextWeek;
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
+using HevySync.Application.Workouts.Queries.GetUserWorkouts;
 using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
@@ -22,6 +23,9 @@ internal static class Average2SavageHandler
 {
     public static void MapAverage2Savage(this RouteGroupBuilder routes)
     {
+        routes.MapGet("/workouts", GetUserWorkouts)
+            .RequireAuthorization();
+
         routes.MapPost("/workout", PostAverage2Savage)
             .RequireAuthorization();
 
@@ -33,6 +37,46 @@ internal static class Average2SavageHandler
 
         routes.MapPost("/workout/generate-next-week", PostAverage2SavageGenerateNextWeek)
             .RequireAuthorization();
+    }
+
+    private static async Task<IResult> GetUserWorkouts(
+        ClaimsPrincipal userPrincipal,
+        UserManager<ApplicationUser> userManager,
+        [FromServices] IMediator mediator)
+    {
+        var user = await userManager.GetUserAsync(userPrincipal);
+        if (user == null)
+            return Results.Unauthorized();
+
+        var query = new GetUserWorkoutsQuery(user.Id);
+        var workouts = await mediator.Send(query);
+
+        var workoutDtos = workouts.Select(w => new WorkoutDto
+        {
+            Id = w.Id,
+            Name = w.Name,
+            WorkoutActivity = new WorkoutActivityDto
+            {
+                Week = w.Activity.Week,
+                Day = w.Activity.Day,
+                WorkoutsInWeek = w.Activity.WorkoutsInWeek,
+                Status = w.Activity.Status,
+                StartedAt = w.Activity.StartedAt,
+                CompletedAt = w.Activity.CompletedAt
+            },
+            Exercises = w.Exercises.Select(e => new ExerciseDto
+            {
+                RestTimer = e.RestTimer,
+                Id = e.Id,
+                Order = e.Order,
+                ExerciseName = e.Name,
+                Day = e.Day,
+                NumberOfSets = e.NumberOfSets,
+                ExerciseDetail = MapProgressionToResponseDto(e.Progression)
+            }).ToList()
+        }).ToList();
+
+        return Results.Ok(workoutDtos);
     }
 
     private static async Task<IResult> PostAverage2SavageCreateWorkoutWeekOneSessionExercises(

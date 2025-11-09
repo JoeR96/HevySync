@@ -11,8 +11,17 @@ public sealed class CreateWorkoutCommandHandler(IUnitOfWork unitOfWork) : IReque
 {
     public async Task<WorkoutDto> Handle(CreateWorkoutCommand command, CancellationToken cancellationToken)
     {
-        if (await unitOfWork.Activities.AnyAsync(a => a.UserId == command.UserId && a.Status == ActivityStatus.Active, cancellationToken))
-            throw new InvalidOperationException("User already has an active workout activity");
+        // Stop any existing active activities before creating a new one
+        var existingActiveActivities = await unitOfWork.Activities
+            .FindAsync(a => a.UserId == command.UserId && a.Status == ActivityStatus.Active, cancellationToken);
+
+        if (existingActiveActivities != null && existingActiveActivities.Count > 0)
+        {
+            foreach (var existingActivity in existingActiveActivities)
+            {
+                existingActivity.Stop();
+            }
+        }
 
         var workoutName = WorkoutName.Create(command.WorkoutName);
         var exercises = new List<Exercise>();
@@ -62,10 +71,12 @@ public sealed class CreateWorkoutCommandHandler(IUnitOfWork unitOfWork) : IReque
 
         var activity = Activity.Create(command.UserId, workout.Id, workoutName);
 
-        await unitOfWork.Workouts.AddAsync(workout, cancellationToken);
+        // Save Activity first to satisfy FK constraint
         await unitOfWork.Activities.AddAsync(activity, cancellationToken);
+        await unitOfWork.Workouts.AddAsync(workout, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Return the in-memory workout which has all properties populated
         return MapToDto(workout);
     }
 

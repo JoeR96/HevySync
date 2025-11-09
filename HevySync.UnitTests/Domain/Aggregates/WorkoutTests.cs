@@ -1,9 +1,9 @@
 using FluentAssertions;
 using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
-using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 using NUnit.Framework;
+using InvalidWorkoutException = HevySync.Domain.Aggregates.InvalidWorkoutException;
 
 namespace HevySync.UnitTests.Domain.Aggregates;
 
@@ -35,21 +35,21 @@ public class WorkoutTests
         workout.Should().NotBeNull();
         workout.Name.Should().Be(workoutName);
         workout.UserId.Should().Be(userId);
-        workout.WorkoutDaysInWeek.Should().Be(5);
+        workout.Activity.WorkoutsInWeek.Should().Be(5);
         workout.Exercises.Should().HaveCount(1);
-        workout.CurrentWeek.Should().Be(1);
-        workout.CurrentDay.Should().Be(1);
+        workout.Activity.Week.Should().Be(1);
+        workout.Activity.Day.Should().Be(1);
     }
 
     [Test]
-    public void Create_WithEmptyExercises_ShouldThrowArgumentException()
+    public void Create_WithEmptyExercises_ShouldThrowInvalidWorkoutException()
     {
         var workoutName = WorkoutName.Create("Test Workout");
         var userId = Guid.NewGuid();
 
         var act = () => Workout.Create(workoutName, userId, 5, new List<Exercise>());
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<InvalidWorkoutException>()
             .WithMessage("*at least one exercise*");
     }
 
@@ -93,8 +93,8 @@ public class WorkoutTests
 
         workout.CompleteDay(performances);
 
-        workout.CurrentDay.Should().Be(2);
-        workout.CurrentWeek.Should().Be(1);
+        workout.Activity.Day.Should().Be(2);
+        workout.Activity.Week.Should().Be(1);
     }
 
     [Test]
@@ -115,27 +115,27 @@ public class WorkoutTests
             workout.CompleteDay(performances);
         }
 
-        workout.CurrentWeek.Should().Be(1);
-        workout.CurrentDay.Should().Be(5);
+        workout.Activity.Week.Should().Be(2);
+        workout.Activity.Day.Should().Be(1);
     }
 
     [Test]
-    public void CompleteDay_WithMissingExercises_ShouldThrowInvalidOperationException()
+    public void CompleteDay_WithMissingExercises_ShouldThrowInvalidWorkoutException()
     {
         var workout = CreateTestWorkout();
 
         var act = () => workout.CompleteDay(new List<ExercisePerformance>());
 
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*performances for all exercises*");
+        act.Should().Throw<InvalidWorkoutException>()
+            .WithMessage("*performances*");
     }
 
     [Test]
-    public void ApplyProgression_WithSuccessfulPerformance_ShouldIncreaseWeights()
+    public void ApplyProgression_WithSuccessfulPerformance_ShouldIncreaseTrainingMax()
     {
         var workout = CreateTestWorkout();
         var exercise = workout.Exercises.First();
-        var initialWeight = (exercise.Progression as LinearProgressionStrategy)?.CurrentWeight;
+        var initialTrainingMax = (exercise.Progression as LinearProgressionStrategy)?.TrainingMax.Value;
 
         var performances = new List<ExercisePerformance>
         {
@@ -149,15 +149,15 @@ public class WorkoutTests
 
         var progression = exercise.Progression as LinearProgressionStrategy;
         progression.Should().NotBeNull();
-        progression!.CurrentWeight.Should().BeGreaterThan(initialWeight!.Value);
+        progression!.TrainingMax.Value.Should().BeGreaterThan(initialTrainingMax!.Value);
     }
 
     [Test]
-    public void ApplyProgression_WithFailedPerformance_ShouldDecrementAttempts()
+    public void ApplyProgression_WithFailedPerformance_ShouldDecreaseTrainingMax()
     {
         var workout = CreateTestWorkout();
         var exercise = workout.Exercises.First();
-        var initialAttempts = (exercise.Progression as LinearProgressionStrategy)?.CurrentAttempts;
+        var initialTrainingMax = (exercise.Progression as LinearProgressionStrategy)?.TrainingMax.Value;
 
         var performances = new List<ExercisePerformance>
         {
@@ -171,7 +171,7 @@ public class WorkoutTests
 
         var progression = exercise.Progression as LinearProgressionStrategy;
         progression.Should().NotBeNull();
-        progression!.CurrentAttempts.Should().BeLessThan(initialAttempts!.Value);
+        progression!.TrainingMax.Value.Should().BeLessThan(initialTrainingMax!.Value);
     }
 
     [Test]

@@ -1,7 +1,6 @@
 using FluentAssertions;
 using HevySync.Application.Workouts.Commands.CreateWorkout;
 using HevySync.Domain.Aggregates;
-using HevySync.Domain.Enums;
 using HevySync.Domain.Repositories;
 using Moq;
 using NUnit.Framework;
@@ -18,6 +17,12 @@ public class CreateWorkoutCommandHandlerTests
     public void SetUp()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        var workoutRepoMock = new Mock<IRepository<Workout, Guid>>();
+        var activityRepoMock = new Mock<IRepository<Activity, Guid>>();
+
+        _unitOfWorkMock.Setup(x => x.Workouts).Returns(workoutRepoMock.Object);
+        _unitOfWorkMock.Setup(x => x.Activities).Returns(activityRepoMock.Object);
+
         _handler = new CreateWorkoutCommandHandler(_unitOfWorkMock.Object);
     }
 
@@ -43,13 +48,14 @@ public class CreateWorkoutCommandHandlerTests
     public async Task Handle_WithExistingActiveActivity_ShouldThrowInvalidOperationException()
     {
         var command = CreateValidCommand();
-        var existingActivity = Activity.Create(command.UserId, Guid.NewGuid(),
-            Domain.ValueObjects.WorkoutName.Create("Existing"));
+        var activityRepoMock = new Mock<IRepository<Activity, Guid>>();
 
-        _unitOfWorkMock.Setup(x => x.Activities.FirstOrDefaultAsync(
+        activityRepoMock.Setup(x => x.AnyAsync(
                 It.IsAny<System.Linq.Expressions.Expression<Func<Activity, bool>>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingActivity);
+            .ReturnsAsync(true);
+
+        _unitOfWorkMock.Setup(x => x.Activities).Returns(activityRepoMock.Object);
 
         var act = async () => await _handler.Handle(command, CancellationToken.None);
 

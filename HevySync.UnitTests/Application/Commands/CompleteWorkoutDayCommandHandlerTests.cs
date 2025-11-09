@@ -2,11 +2,11 @@ using FluentAssertions;
 using HevySync.Application.Workouts.Commands.CompleteWorkoutDay;
 using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
-using HevySync.Domain.Enums;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
 using Moq;
 using NUnit.Framework;
+using InvalidWorkoutException = HevySync.Domain.Aggregates.InvalidWorkoutException;
 
 namespace HevySync.UnitTests.Application.Commands;
 
@@ -20,6 +20,12 @@ public class CompleteWorkoutDayCommandHandlerTests
     public void SetUp()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        var workoutRepoMock = new Mock<IRepository<Workout, Guid>>();
+        var activityRepoMock = new Mock<IRepository<Activity, Guid>>();
+
+        _unitOfWorkMock.Setup(x => x.Workouts).Returns(workoutRepoMock.Object);
+        _unitOfWorkMock.Setup(x => x.Activities).Returns(activityRepoMock.Object);
+
         _handler = new CompleteWorkoutDayCommandHandler(_unitOfWorkMock.Object);
     }
 
@@ -40,7 +46,7 @@ public class CompleteWorkoutDayCommandHandlerTests
                         new CompletedSetDto(100m, 5),
                         new CompletedSetDto(100m, 5)
                     },
-                    PerformanceResult.Success)
+                    "Success")
             });
 
         _unitOfWorkMock.Setup(x => x.Workouts.GetByIdAsync(workout.Id, It.IsAny<CancellationToken>()))
@@ -95,7 +101,7 @@ public class CompleteWorkoutDayCommandHandlerTests
                 new ExercisePerformanceDto(
                     exercise.Id,
                     new List<CompletedSetDto> { new CompletedSetDto(100m, 5) },
-                    PerformanceResult.Success)
+                    "Success")
             });
 
         _unitOfWorkMock.Setup(x => x.Workouts.GetByIdAsync(workout.Id, It.IsAny<CancellationToken>()))
@@ -107,7 +113,7 @@ public class CompleteWorkoutDayCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithMissingExercisePerformances_ShouldThrowInvalidOperationException()
+    public async Task Handle_WithMissingExercisePerformances_ShouldThrowInvalidWorkoutException()
     {
         var workout = CreateTestWorkout();
         var command = new CompleteWorkoutDayCommand(
@@ -119,7 +125,7 @@ public class CompleteWorkoutDayCommandHandlerTests
 
         var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<InvalidWorkoutException>();
     }
 
     [Test]
@@ -127,7 +133,7 @@ public class CompleteWorkoutDayCommandHandlerTests
     {
         var workout = CreateTestWorkout();
         var exercise = workout.Exercises.First();
-        var initialDay = workout.CurrentDay;
+        var initialDay = workout.Activity.Day;
 
         var command = new CompleteWorkoutDayCommand(
             workout.Id,
@@ -141,7 +147,7 @@ public class CompleteWorkoutDayCommandHandlerTests
                         new CompletedSetDto(100m, 5),
                         new CompletedSetDto(100m, 5)
                     },
-                    PerformanceResult.Success)
+                    "Success")
             });
 
         _unitOfWorkMock.Setup(x => x.Workouts.GetByIdAsync(workout.Id, It.IsAny<CancellationToken>()))
@@ -149,7 +155,7 @@ public class CompleteWorkoutDayCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        workout.CurrentDay.Should().Be(initialDay + 1);
+        workout.Activity.Day.Should().Be(initialDay + 1);
     }
 
     private static Workout CreateTestWorkout()

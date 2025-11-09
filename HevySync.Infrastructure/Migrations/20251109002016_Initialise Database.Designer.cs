@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HevySync.Infrastructure.Migrations
 {
     [DbContext(typeof(HevySyncDbContext))]
-    [Migration("20251105120627_Initial")]
-    partial class Initial
+    [Migration("20251109002016_Initialise Database")]
+    partial class InitialiseDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,43 @@ namespace HevySync.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("HevySync.Domain.Aggregates.Activity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("StoppedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("WorkoutName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("WorkoutName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("Activities", (string)null);
+                });
 
             modelBuilder.Entity("HevySync.Domain.Aggregates.Workout", b =>
                 {
@@ -50,14 +87,8 @@ namespace HevySync.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BodyCategory")
-                        .HasColumnType("text");
-
                     b.Property<int>("Day")
                         .HasColumnType("integer");
-
-                    b.Property<string>("EquipmentType")
-                        .HasColumnType("text");
 
                     b.Property<string>("ExerciseTemplateId")
                         .IsRequired()
@@ -347,6 +378,10 @@ namespace HevySync.Infrastructure.Migrations
 
                     b.Property<int>("TargetSetCount")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("WeightProgression")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("RepsPerSetWeightProgression");
 
                     b.HasDiscriminator().HasValue("RepsPerSet");
                 });

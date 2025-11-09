@@ -4,7 +4,7 @@ namespace HevySync.Domain.Repositories;
 
 public interface IUnitOfWork : IDisposable
 {
-    IRepository<Workout, Guid> Workouts { get; }
+    IWorkoutRepository Workouts { get; }
     IRepository<Activity, Guid> Activities { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -3,6 +3,7 @@ using HevySync;
 using HevySync.Application;
 using HevySync.Configuration;
 using HevySync.Endpoints.Average2Savage;
+using HevySync.Endpoints.Average2Savage.Converters;
 using HevySync.Endpoints.Hevy;
 using HevySync.Infrastructure;
 using HevySync.Infrastructure.Identity;
@@ -13,6 +14,13 @@ builder.Services.AddAuthorization()
     .AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<HevySync.Infrastructure.Persistence.HevySyncDbContext>();
 
+// Configure JSON options for minimal APIs
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new ExerciseDetailsRequestConverter());
+    options.SerializerOptions.Converters.Add(new ExerciseDetailDtoConverter());
+});
+
 builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration)
@@ -22,7 +30,14 @@ builder.Services
     .AddSwagger()
     .AddCorsWithPolicy()
     .AddEndpointsApiExplorer()
-    .AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AssemblyMarker>());
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Use PascalCase
+        options.JsonSerializerOptions.Converters.Add(new ExerciseDetailsRequestConverter());
+        options.JsonSerializerOptions.Converters.Add(new ExerciseDetailDtoConverter());
+    })
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<AssemblyMarker>());
 
 var app = builder.Build();
 

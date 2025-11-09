@@ -15,7 +15,7 @@ public static class DatabaseSeeder
         UserManager<ApplicationUser> userManager)
     {
         const string demoEmail = "demo@hevysync.com";
-        const string demoPassword = "Demo123!";
+        const string demoPassword = "DemoPass123#";
 
         var existingUser = await userManager.FindByEmailAsync(demoEmail);
         if (existingUser != null)
@@ -317,7 +317,7 @@ public static class DatabaseSeeder
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
                     3, 5, 0m,
-                    WeightProgression.Create(0m)))
+                    WeightProgression.Create(1m)))
         };
     }
 
@@ -431,7 +431,7 @@ public static class DatabaseSeeder
                     Guid.Empty,
                     RepRange.Create(30, 45, 60),
                     3, 4, 0m,
-                    WeightProgression.Create(0m)))
+                    WeightProgression.Create(1m)))
         };
     }
 }

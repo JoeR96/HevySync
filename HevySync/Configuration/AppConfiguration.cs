@@ -67,6 +67,11 @@ public static class AppConfiguration
             {
                 Console.WriteLine("✅ No pending migrations.");
             }
+
+            // Seed demo user with workout data
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<HevySync.Infrastructure.Identity.ApplicationUser>>();
+            await DatabaseSeeder.SeedDemoUserAsync(dbContext, userManager);
+            Console.WriteLine("✅ Demo user seeded.");
         }
     }
 

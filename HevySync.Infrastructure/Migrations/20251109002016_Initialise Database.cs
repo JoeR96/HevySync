@@ -7,11 +7,29 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HevySync.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialiseDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Activities",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    WorkoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                    WorkoutName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    StoppedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Activities", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -185,8 +203,6 @@ namespace HevySync.Infrastructure.Migrations
                     Day = table.Column<int>(type: "integer", nullable: false),
                     Order = table.Column<int>(type: "integer", nullable: false),
                     NumberOfSets = table.Column<int>(type: "integer", nullable: false),
-                    BodyCategory = table.Column<string>(type: "text", nullable: true),
-                    EquipmentType = table.Column<string>(type: "text", nullable: true),
                     WorkoutId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -216,7 +232,8 @@ namespace HevySync.Infrastructure.Migrations
                     MaximumTargetReps = table.Column<int>(type: "integer", nullable: true),
                     StartingSetCount = table.Column<int>(type: "integer", nullable: true),
                     TargetSetCount = table.Column<int>(type: "integer", nullable: true),
-                    StartingWeight = table.Column<decimal>(type: "numeric(18,2)", nullable: true)
+                    StartingWeight = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    RepsPerSetWeightProgression = table.Column<decimal>(type: "numeric(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -228,6 +245,11 @@ namespace HevySync.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Activities_UserId_Status",
+                table: "Activities",
+                columns: new[] { "UserId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -281,6 +303,9 @@ namespace HevySync.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Activities");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

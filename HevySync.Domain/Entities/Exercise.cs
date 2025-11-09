@@ -1,4 +1,5 @@
 using HevySync.Domain.Common;
+using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 
 namespace HevySync.Domain.Entities;
@@ -16,6 +17,8 @@ public sealed class Exercise : Entity<Guid>
     public int Order { get; private set; }
     public int NumberOfSets { get; private set; }
     public Guid WorkoutId { get; private set; }
+    public MuscleGroup PrimaryMuscleGroup { get; private set; }
+    public List<MuscleGroup> SecondaryMuscleGroups { get; private set; } = new();
 
     public ExerciseProgression Progression { get; private set; } = null!;
 
@@ -33,6 +36,8 @@ public sealed class Exercise : Entity<Guid>
         int order,
         int numberOfSets,
         Guid workoutId,
+        MuscleGroup primaryMuscleGroup,
+        List<MuscleGroup> secondaryMuscleGroups,
         ExerciseProgression progression) : base(id)
     {
         Name = name;
@@ -42,6 +47,8 @@ public sealed class Exercise : Entity<Guid>
         Order = order;
         NumberOfSets = numberOfSets;
         WorkoutId = workoutId;
+        PrimaryMuscleGroup = primaryMuscleGroup;
+        SecondaryMuscleGroups = secondaryMuscleGroups;
         Progression = progression;
     }
 
@@ -53,6 +60,8 @@ public sealed class Exercise : Entity<Guid>
         int order,
         int numberOfSets,
         Guid workoutId,
+        MuscleGroup primaryMuscleGroup,
+        List<MuscleGroup>? secondaryMuscleGroups,
         ExerciseProgression progression)
     {
         if (string.IsNullOrWhiteSpace(exerciseTemplateId))

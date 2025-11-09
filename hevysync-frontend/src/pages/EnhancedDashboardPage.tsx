@@ -2,8 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useTheme } from '../contexts/ThemeContext';
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Calendar, Dumbbell, Clock, Award, Activity, ChevronRight, Moon, Sun, Weight, Repeat, Target } from 'lucide-react';
+import { StatCard, DashboardCard } from '../components/DashboardCard';
+import { ExerciseProgressChart } from '../components/ExerciseProgressChart';
+import { BodyPartsChart } from '../components/BodyPartsChart';
+import { OneRepMaxChart } from '../components/OneRepMaxChart';
 
 // Temporary body part mapping - will be replaced with backend data
 const EXERCISE_BODY_PARTS: Record<string, string> = {
@@ -111,7 +114,26 @@ export default function EnhancedDashboardPage() {
     return acc;
   }, []);
 
-  const COLORS = ['#ff9900', '#c27100', '#ea8600', '#9a5a00', '#7c4a00'];
+  // Sample data for tracked exercise
+  const squatProgressData = [
+    { date: 'Oct 14', weight: 125 },
+    { date: 'Oct 21', weight: 127.5 },
+    { date: 'Oct 28', weight: 130 },
+    { date: 'Nov 4', weight: 130 },
+    { date: 'Nov 11', weight: 132.5 },
+    { date: 'Nov 18', weight: 135 },
+    { date: 'Nov 25', weight: 137.5 },
+    { date: 'Dec 2', weight: 140 },
+  ];
+
+  // Sample 1RM data - in real app, this would come from latest workout performances
+  const oneRepMaxData = [
+    { exerciseName: 'Squat', weight: 140, reps: 5 },
+    { exerciseName: 'Bench Press', weight: 100, reps: 8 },
+    { exerciseName: 'Deadlift', weight: 160, reps: 3 },
+    { exerciseName: 'Overhead Press', weight: 60, reps: 6 },
+    { exerciseName: 'Barbell Row', weight: 80, reps: 10 },
+  ];
 
   if (isLoading) {
     return (
@@ -125,30 +147,30 @@ export default function EnhancedDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <nav className="bg-dark-surface shadow-md border-b border-dark-border">
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Dumbbell className="h-8 w-8 text-brand-orange mr-3" />
-              <h1 className="text-2xl font-bold text-brand-orange">
+              <Dumbbell className="h-8 w-8 text-indigo-600 dark:text-indigo-400 mr-3" />
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 HevySync
               </h1>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-dark-elevated transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Toggle theme"
               >
                 {theme === 'dark' ? (
-                  <Sun className="h-5 w-5 text-dark-text" />
+                  <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                 ) : (
                   <Moon className="h-5 w-5 text-gray-600" />
                 )}
               </button>
-              <span className="text-sm font-medium text-dark-text">{userEmail}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{userEmail}</span>
               <button
                 onClick={handleSignOut}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-all shadow-sm"
@@ -160,183 +182,66 @@ export default function EnhancedDashboardPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-dark-text text-sm font-medium">Active Workout</p>
-                <p className="text-3xl font-bold mt-2 text-white">{activeWorkout ? 'In Progress' : 'None'}</p>
-                {activeWorkout && activeActivity && (
-                  <p className="text-dark-text text-sm mt-1">Week {currentWeek}, Day {currentDay}</p>
-                )}
-              </div>
-              <div className="bg-brand-orange/20 p-3 rounded-full">
-                <Activity className="h-8 w-8 text-brand-orange" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-dark-text text-sm font-medium">Total Workouts</p>
-                <p className="text-3xl font-bold mt-2 text-white">{workouts.length}</p>
-                <p className="text-dark-text text-sm mt-1">{completedWorkouts.length} completed</p>
-              </div>
-              <div className="bg-brand-orange/20 p-3 rounded-full">
-                <Calendar className="h-8 w-8 text-brand-orange" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-dark-text text-sm font-medium">Total Exercises</p>
-                <p className="text-3xl font-bold mt-2 text-white">{totalExercises}</p>
-                <p className="text-dark-text text-sm mt-1">Across all workouts</p>
-              </div>
-              <div className="bg-brand-orange/20 p-3 rounded-full">
-                <Dumbbell className="h-8 w-8 text-brand-orange" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-dark-surface border-2 border-dark-elevated rounded-2xl p-6 shadow-lg hover:shadow-xl hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-dark-text text-sm font-medium">Weeks Trained</p>
-                <p className="text-3xl font-bold mt-2 text-white">{totalWeeksCompleted}</p>
-                <p className="text-dark-text text-sm mt-1">Total completed</p>
-              </div>
-              <div className="bg-brand-orange/20 p-3 rounded-full">
-                <Award className="h-8 w-8 text-brand-orange" />
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            title="Active Workout"
+            value={activeWorkout ? 'In Progress' : 'None'}
+            subtitle={activeWorkout && activeActivity ? `Week ${currentWeek}, Day ${currentDay}` : undefined}
+            icon={<Activity className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />}
+          />
+          <StatCard
+            title="Total Workouts"
+            value={workouts.length}
+            subtitle={`${completedWorkouts.length} completed`}
+            icon={<Calendar className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />}
+          />
+          <StatCard
+            title="Total Exercises"
+            value={totalExercises}
+            subtitle="Across all workouts"
+            icon={<Dumbbell className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />}
+          />
+          <StatCard
+            title="Weeks Trained"
+            value={totalWeeksCompleted}
+            subtitle="Total completed"
+            icon={<Award className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />}
+          />
         </div>
 
         {/* Mosaic Dashboard Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Tracked Exercise Widget - Squat Progress */}
-          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border-2 border-dark-elevated hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center">
-                  <Target className="h-5 w-5 mr-2 text-brand-orange" />
-                  Squat Progress
-                </h3>
-                <p className="text-xs text-dark-text mt-1">Training Max: 140 kg</p>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={[
-                { week: 'W4', weight: 125 },
-                { week: 'W5', weight: 127.5 },
-                { week: 'W6', weight: 130 },
-                { week: 'W7', weight: 130 },
-                { week: 'W8', weight: 132.5 },
-                { week: 'W9', weight: 135 },
-                { week: 'W10', weight: 137.5 },
-                { week: 'W11', weight: 140 },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#454545" />
-                <XAxis 
-                  dataKey="week" 
-                  stroke="#818181" 
-                  tick={{ fill: '#818181', fontSize: 12 }}
-                />
-                <YAxis 
-                  stroke="#818181" 
-                  tick={{ fill: '#818181', fontSize: 12 }}
-                  domain={['dataMin - 5', 'dataMax + 5']}
-                />
-                <Tooltip
-                  contentStyle={{ 
-                    backgroundColor: '#313131', 
-                    border: '1px solid #454545', 
-                    borderRadius: '8px',
-                    color: '#fff'
-                  }}
-                  formatter={(value: any) => [`${value} kg`, 'Weight']}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#ff9900"
-                  strokeWidth={3}
-                  dot={{ fill: '#ff9900', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Body Parts Distribution Pie Chart */}
-          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border-2 border-dark-elevated hover:border-brand-orange/30 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center">
-                <Target className="h-5 w-5 mr-2 text-brand-orange" />
-                Body Parts Distribution
-              </h3>
-            </div>
-            {bodyPartsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={bodyPartsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {bodyPartsData.map((_entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#313131', 
-                      border: '1px solid #454545', 
-                      borderRadius: '8px',
-                      color: '#fff'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-8 text-dark-text">
-                No exercises to display
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <ExerciseProgressChart
+            exerciseName="Squat"
+            trainingMax={140}
+            data={squatProgressData}
+          />
+          <OneRepMaxChart data={oneRepMaxData as any} />
         </div>
 
-        {/* Current Workout Detail - Compact */}
+        {/* Current Workout */}
         {activeWorkout && todaysExercises.length > 0 && (
-          <div className="bg-dark-surface rounded-2xl p-6 shadow-lg mb-8 border border-dark-border">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-2xl font-bold text-white">{getProp(activeWorkout, 'name')}</h3>
-                <p className="text-dark-text mt-1">
-                  Week {currentWeek} • Day {currentDay} • {todaysExercises.length} exercises
-                </p>
+          <div className="space-y-4 mb-6">
+            <DashboardCard>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{getProp(activeWorkout, 'name')}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mt-1 font-semibold">
+                    Week {currentWeek} • Day {currentDay} • {todaysExercises.length} exercises
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/workout/execute')}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center font-semibold"
+                >
+                  Complete Workout
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </button>
               </div>
-              <button
-                onClick={() => navigate('/workout/execute')}
-                className="px-6 py-3 bg-brand-orange text-white rounded-xl hover:bg-orange-600 transition-all shadow-md flex items-center"
-              >
-                Start Workout
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {todaysExercises.map((exercise: any) => {
                 const exerciseId = getProp(exercise, 'id');
                 const exerciseName = getProp(exercise, 'exerciseName');
@@ -355,14 +260,18 @@ export default function EnhancedDashboardPage() {
                 // Check if it's A2S Hypertrophy (linear progression)
                 const isA2SHypertrophy = program === 'Average2SavageHypertrophy' || trainingMax;
                 
+                // Calculate AMRAP target based on week (A2S Hypertrophy pattern)
+                const amrapTargets = [10, 8, 6, 9, 7, 5]; // Repeating pattern
+                const amrapTarget = amrapTargets[(currentWeek - 1) % 6];
+                
                 return (
-                  <div key={exerciseId} className="border border-dark-border rounded-xl p-4 hover:shadow-md transition-shadow bg-dark-elevated">
+                  <div key={exerciseId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-white">{exerciseName}</h4>
-                        <p className="text-xs text-dark-text mt-1">{getBodyPart(exerciseName)}</p>
+                        <h4 className="font-bold text-gray-900 dark:text-white">{exerciseName}</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mt-1">{getBodyPart(exerciseName)}</p>
                       </div>
-                      <div className="bg-brand-orange/20 text-brand-orange px-3 py-1 rounded-full text-xs font-medium">
+                      <div className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold">
                         {numberOfSets} sets
                       </div>
                     </div>
@@ -371,64 +280,119 @@ export default function EnhancedDashboardPage() {
                       {isA2SHypertrophy && trainingMax && (
                         <>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-dark-text flex items-center">
+                            <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                               <Weight className="h-3 w-3 mr-1" />
                               Training Max
                             </span>
-                            <span className="font-semibold text-white">{trainingMax} kg</span>
+                            <span className="font-bold text-gray-900 dark:text-white">{trainingMax} kg</span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-dark-text flex items-center">
+                            <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                               <Target className="h-3 w-3 mr-1" />
                               AMRAP Target
                             </span>
-                            <span className="font-semibold text-brand-orange">Week {currentWeek}</span>
+                            <span className="font-bold text-indigo-600 dark:text-indigo-400">{amrapTarget}+ reps</span>
                           </div>
                         </>
                       )}
                       {startingWeight && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-dark-text flex items-center">
+                          <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                             <Weight className="h-3 w-3 mr-1" />
                             Weight
                           </span>
-                          <span className="font-semibold text-white">{startingWeight} kg</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{startingWeight} kg</span>
                         </div>
                       )}
                       {(targetReps || minReps) && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-dark-text flex items-center">
+                          <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                             <Repeat className="h-3 w-3 mr-1" />
                             Reps
                           </span>
-                          <span className="font-semibold text-white">
+                          <span className="font-bold text-gray-900 dark:text-white">
                             {minReps && maxReps ? `${minReps}-${maxReps}` : targetReps}
                           </span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between text-sm pt-2 border-t border-dark-border">
-                        <span className="text-dark-text flex items-center">
+                      <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                           <Clock className="h-3 w-3 mr-1" />
                           Rest
                         </span>
-                        <span className="font-semibold text-white">{restTimer}s</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{restTimer}s</span>
                       </div>
                     </div>
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </DashboardCard>
+
+            {/* Week Overview - Horizontal */}
+            <DashboardCard>
+              <div className="flex items-center mb-3">
+                <Calendar className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  This Week
+                </h3>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5].map((day) => {
+                  const dayExercises = allExercises.filter((ex: any) => getProp(ex, 'day') === day);
+                  const isCurrentDay = day === currentDay;
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      className={`p-2 rounded border transition-all ${
+                        isCurrentDay 
+                          ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500' 
+                          : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+                      }`}
+                    >
+                      <div className="text-center mb-1">
+                        <span className={`font-bold text-xs ${isCurrentDay ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-900 dark:text-white'}`}>
+                          Day {day}
+                        </span>
+                      </div>
+                      <div className="text-center text-xs text-gray-600 dark:text-gray-400 mb-1 font-semibold">
+                        {dayExercises.length} exercises
+                      </div>
+                      {dayExercises.length > 0 && (
+                        <div className="space-y-0.5">
+                          {dayExercises.map((ex: any, idx: number) => {
+                            const exerciseName = getProp(ex, 'exerciseName') || '';
+                            return (
+                              <div 
+                                key={idx}
+                                className="text-xs text-gray-700 dark:text-gray-300 truncate text-center font-medium"
+                                title={exerciseName}
+                              >
+                                • {exerciseName}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </DashboardCard>
           </div>
         )}
 
-        {/* All Workouts List */}
-        <div className="bg-dark-surface rounded-2xl p-6 shadow-lg border border-dark-border">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-            <Calendar className="h-6 w-6 mr-2 text-brand-orange" />
-            All Workouts
-          </h3>
-          <div className="space-y-3">
-            {workouts.map((workout: any) => {
+        {/* All Workouts and Body Parts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <DashboardCard>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                <Calendar className="h-6 w-6 mr-2 text-indigo-600 dark:text-indigo-400" />
+                All Workouts
+              </h3>
+              <div className="space-y-3">
+                {workouts.map((workout: any) => {
               const workoutId = getProp(workout, 'id');
               const workoutName = getProp(workout, 'name');
               const workoutActivity = getProp(workout, 'workoutActivity');
@@ -440,12 +404,12 @@ export default function EnhancedDashboardPage() {
               return (
                 <div
                   key={workoutId}
-                  className="flex items-center justify-between p-4 border border-dark-border rounded-xl hover:border-brand-orange hover:shadow-md transition-all cursor-pointer bg-dark-elevated"
+                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer bg-gray-50 dark:bg-gray-800"
                   onClick={() => navigate(`/workout/${workoutId}`)}
                 >
                   <div className="flex-1">
-                    <h4 className="font-semibold text-white">{workoutName}</h4>
-                    <div className="flex items-center mt-2 space-x-4 text-sm text-dark-text">
+                    <h4 className="font-bold text-gray-900 dark:text-white">{workoutName}</h4>
+                    <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600 dark:text-gray-400 font-semibold">
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         Week {week}, Day {day}
@@ -457,19 +421,24 @@ export default function EnhancedDashboardPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       status === 'Active'
-                        ? 'bg-green-900/30 text-green-400 border border-green-700'
-                        : 'bg-dark-elevated text-dark-text border border-dark-border'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}>
                       {status || 'Pending'}
                     </span>
-                    <ChevronRight className="h-5 w-5 text-dark-text" />
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
                   </div>
                 </div>
               );
             })}
+              </div>
+            </DashboardCard>
           </div>
+
+          {/* Body Parts Distribution */}
+          <BodyPartsChart data={bodyPartsData} />
         </div>
       </main>
     </div>

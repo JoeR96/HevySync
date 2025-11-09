@@ -2,11 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useTheme } from '../contexts/ThemeContext';
 import { useEffect, useState } from 'react';
-import { Calendar, Dumbbell, Clock, Award, Activity, ChevronRight, Moon, Sun, Weight, Repeat, Target } from 'lucide-react';
+import { Calendar, Dumbbell, Clock, Award, Activity, ChevronRight, Moon, Sun, Weight, Repeat } from 'lucide-react';
 import { StatCard, DashboardCard } from '../components/DashboardCard';
 import { ExerciseProgressChart } from '../components/ExerciseProgressChart';
 import { BodyPartsChart } from '../components/BodyPartsChart';
 import { OneRepMaxChart } from '../components/OneRepMaxChart';
+import { CompleteWorkoutModal } from '../components/CompleteWorkoutModal';
 
 // Temporary body part mapping - will be replaced with backend data
 const EXERCISE_BODY_PARTS: Record<string, string> = {
@@ -47,23 +48,10 @@ function getBodyPart(exerciseName: string): string {
 export default function EnhancedDashboardPage() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { workouts, fetchWorkouts, isLoading } = useWorkoutStore();
+  const { workouts, fetchWorkouts, isLoading, completeDay, fetchWeekSessions } = useWorkoutStore();
   const [userEmail, setUserEmail] = useState<string>('');
-
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      navigate('/login');
-    } else {
-      setUserEmail('demo@hevysync.com');
-      fetchWorkouts();
-    }
-  }, [navigate, fetchWorkouts]);
-
-  const handleSignOut = () => {
-    localStorage.removeItem('authToken');
-    navigate('/login');
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [weekSessions, setWeekSessions] = useState<any>(null);
 
   const getProp = (obj: any, propName: string) => {
     if (!obj) return undefined;
@@ -83,6 +71,38 @@ export default function EnhancedDashboardPage() {
     const status = getProp(activity, 'status');
     return status === 'Active';
   }) as any;
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/login');
+    } else {
+      setUserEmail('demo@hevysync.com');
+      fetchWorkouts();
+    }
+  }, [navigate, fetchWorkouts]);
+
+  useEffect(() => {
+    if (activeWorkout) {
+      const workoutId = getProp(activeWorkout, 'id');
+      fetchWeekSessions(workoutId).then(sessions => {
+        console.log('Week sessions:', sessions);
+        setWeekSessions(sessions);
+      }).catch(err => console.error('Failed to load week sessions:', err));
+    }
+  }, [activeWorkout, fetchWeekSessions]);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('authToken');
+    navigate('/login');
+  };
+
+  const handleCompleteWorkout = async (performances: any[]) => {
+    if (!activeWorkout) return;
+    const workoutId = getProp(activeWorkout, 'id');
+    await completeDay(workoutId, performances);
+    await fetchWorkouts();
+  };
 
   const totalExercises = workouts.reduce((sum: number, w: any) => {
     const exercises = getProp(w, 'exercises');
@@ -233,7 +253,7 @@ export default function EnhancedDashboardPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate('/workout/execute')}
+                  onClick={() => setIsModalOpen(true)}
                   className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center font-semibold"
                 >
                   Complete Workout
@@ -249,20 +269,25 @@ export default function EnhancedDashboardPage() {
                 const restTimer = getProp(exercise, 'restTimer');
                 const exerciseDetail = getProp(exercise, 'exerciseDetail');
                 
-                // Get progression details
+                // Get sets from week sessions for this exercise's day
+                const daySessions = weekSessions?.[currentDay] || [];
+                const exerciseSession = daySessions.find((s: any) => 
+                  (getProp(s, 'exerciseName') || '').toLowerCase() === (exerciseName || '').toLowerCase()
+                );
+                const sets = getProp(exerciseSession, 'sets') || [];
+                const workingWeight = sets.length > 0 ? getProp(sets[0], 'weightKg') : null;
+                const targetReps = sets.length > 0 ? getProp(sets[0], 'reps') : null;
+                const amrapReps = sets.length > 1 ? getProp(sets[sets.length - 1], 'reps') : targetReps;
+                
+                // Get progression details for display
                 const trainingMax = getProp(exerciseDetail, 'trainingMax');
                 const startingWeight = getProp(exerciseDetail, 'startingWeight');
-                const targetReps = getProp(exerciseDetail, 'targetReps');
                 const minReps = getProp(exerciseDetail, 'minimumReps');
                 const maxReps = getProp(exerciseDetail, 'maximumTargetReps');
-                const program = getProp(exerciseDetail, 'program');
+                const program = getProp(exerciseDetail, 'program') || getProp(exerciseDetail, 'programType');
                 
                 // Check if it's A2S Hypertrophy (linear progression)
-                const isA2SHypertrophy = program === 'Average2SavageHypertrophy' || trainingMax;
-                
-                // Calculate AMRAP target based on week (A2S Hypertrophy pattern)
-                const amrapTargets = [10, 8, 6, 9, 7, 5]; // Repeating pattern
-                const amrapTarget = amrapTargets[(currentWeek - 1) % 6];
+                const isA2SHypertrophy = program === 'Average2SavageHypertrophy' || program === 'LinearProgression' || trainingMax;
                 
                 return (
                   <div key={exerciseId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
@@ -277,31 +302,32 @@ export default function EnhancedDashboardPage() {
                     </div>
                     
                     <div className="space-y-2 mt-3">
-                      {isA2SHypertrophy && trainingMax && (
-                        <>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
-                              <Weight className="h-3 w-3 mr-1" />
-                              Training Max
-                            </span>
-                            <span className="font-bold text-gray-900 dark:text-white">{trainingMax} kg</span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
-                              <Target className="h-3 w-3 mr-1" />
-                              AMRAP Target
-                            </span>
-                            <span className="font-bold text-indigo-600 dark:text-indigo-400">{amrapTarget}+ reps</span>
-                          </div>
-                        </>
-                      )}
-                      {startingWeight && (
-                        <div className="flex items-center justify-between text-sm">
+                      {workingWeight && (
+                        <div className="flex items-center justify-between text-sm bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
                           <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
                             <Weight className="h-3 w-3 mr-1" />
-                            Weight
+                            Working Weight
                           </span>
-                          <span className="font-bold text-gray-900 dark:text-white">{startingWeight} kg</span>
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400 text-base">{workingWeight} kg</span>
+                        </div>
+                      )}
+                      {sets.length > 0 && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold">
+                            <Repeat className="h-3 w-3 mr-1" />
+                            Sets × Reps
+                          </span>
+                          <span className="font-bold text-gray-900 dark:text-white">
+                            {sets.length - 1} × {targetReps} + 1 × {amrapReps}+
+                          </span>
+                        </div>
+                      )}
+                      {isA2SHypertrophy && trainingMax && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 flex items-center font-bold text-xs">
+                            Training Max
+                          </span>
+                          <span className="font-semibold text-gray-600 dark:text-gray-400 text-xs">{trainingMax} kg</span>
                         </div>
                       )}
                       {(targetReps || minReps) && (
@@ -441,6 +467,20 @@ export default function EnhancedDashboardPage() {
           <BodyPartsChart data={bodyPartsData} />
         </div>
       </main>
+
+      {/* Complete Workout Modal */}
+      {activeWorkout && (
+        <CompleteWorkoutModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          exercises={todaysExercises}
+          onComplete={handleCompleteWorkout}
+          workoutName={getProp(activeWorkout, 'name') || ''}
+          week={currentWeek}
+          day={currentDay}
+          weekSessions={weekSessions}
+        />
+      )}
     </div>
   );
 }

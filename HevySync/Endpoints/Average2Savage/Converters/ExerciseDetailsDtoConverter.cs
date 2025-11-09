@@ -49,7 +49,9 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
             TargetReps = root.GetProperty(nameof(RepsPerSetDto.TargetReps)).GetInt32(),
             MaximumTargetReps = root.GetProperty(nameof(RepsPerSetDto.MaximumTargetReps)).GetInt32(),
             StartingSetCount = root.GetProperty(nameof(RepsPerSetDto.StartingSetCount)).GetInt32(),
-            TargetSetCount = root.GetProperty(nameof(RepsPerSetDto.TargetSetCount)).GetInt32()
+            TargetSetCount = root.GetProperty(nameof(RepsPerSetDto.TargetSetCount)).GetInt32(),
+            StartingWeight = root.GetProperty(nameof(RepsPerSetDto.StartingWeight)).GetDecimal(),
+            WeightProgression = root.GetProperty(nameof(RepsPerSetDto.WeightProgression)).GetDecimal()
         };
     }
 
@@ -75,6 +77,8 @@ public class ExerciseDetailDtoConverter : JsonConverter<ExerciseDetailDto>
                 writer.WriteNumber(nameof(reps.MaximumTargetReps), reps.MaximumTargetReps);
                 writer.WriteNumber(nameof(reps.StartingSetCount), reps.StartingSetCount);
                 writer.WriteNumber(nameof(reps.TargetSetCount), reps.TargetSetCount);
+                writer.WriteNumber(nameof(reps.StartingWeight), (double)reps.StartingWeight);
+                writer.WriteNumber(nameof(reps.WeightProgression), (double)reps.WeightProgression);
                 break;
 
             default:

@@ -1,6 +1,7 @@
 using HevySync.Application.DTOs;
 using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
+using HevySync.Domain.Enums;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
 using MediatR;
@@ -58,6 +59,8 @@ public sealed class CreateWorkoutCommandHandler(IUnitOfWork unitOfWork) : IReque
                 exerciseDto.Order,
                 exerciseDto.NumberOfSets,
                 workoutId,
+                MuscleGroup.Chest, // Default primary muscle group
+                null, // No secondary muscle groups
                 progression);
 
             exercises.Add(exercise);

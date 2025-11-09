@@ -9,6 +9,7 @@ using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
 using HevySync.Endpoints.Responses;
+using HevySync.Facades;
 using HevySync.Infrastructure.Identity;
 using HevySync.Models;
 using HevySync.Models.Exercises;
@@ -37,6 +38,19 @@ internal static class Average2SavageHandler
 
         routes.MapPost("/workout/generate-next-week", PostAverage2SavageGenerateNextWeek)
             .RequireAuthorization();
+
+        routes.MapGet("/workout/{workoutId:guid}/week-sessions", GetWorkoutWeekSessions)
+            .RequireAuthorization();
+    }
+    
+    private static async Task<IResult> GetWorkoutWeekSessions(
+        [FromRoute] Guid workoutId,
+        [FromServices] IMediator mediator)
+    {
+        var command = new GenerateWeekOneCommand(workoutId);
+        var sessions = await mediator.Send(command);
+        
+        return Results.Ok(sessions);
     }
 
     private static async Task<IResult> GetUserWorkouts(
@@ -51,11 +65,11 @@ internal static class Average2SavageHandler
         var query = new GetUserWorkoutsQuery(user.Id);
         var workouts = await mediator.Send(query);
 
-        var workoutDtos = workouts.Select(w => new WorkoutDto
+        var workoutDtos = workouts.Select(w => new Models.WorkoutDto
         {
             Id = w.Id,
             Name = w.Name,
-            WorkoutActivity = new WorkoutActivityDto
+            WorkoutActivity = new Models.WorkoutActivityDto
             {
                 Week = w.Activity.Week,
                 Day = w.Activity.Day,
@@ -64,7 +78,7 @@ internal static class Average2SavageHandler
                 StartedAt = w.Activity.StartedAt,
                 CompletedAt = w.Activity.CompletedAt
             },
-            Exercises = w.Exercises.Select(e => new ExerciseDto
+            Exercises = w.Exercises.Select(e => new Models.Exercises.ExerciseDto
             {
                 RestTimer = e.RestTimer,
                 Id = e.Id,
@@ -168,11 +182,11 @@ internal static class Average2SavageHandler
 
         var appWorkoutDto = await mediator.Send(command);
 
-        var workoutDto = new WorkoutDto
+        var workoutDto = new Models.WorkoutDto
         {
             Id = appWorkoutDto.Id,
             Name = appWorkoutDto.Name,
-            WorkoutActivity = new WorkoutActivityDto
+            WorkoutActivity = new Models.WorkoutActivityDto
             {
                 Week = appWorkoutDto.Activity.Week,
                 Day = appWorkoutDto.Activity.Day,
@@ -180,7 +194,7 @@ internal static class Average2SavageHandler
                 WorkoutId = appWorkoutDto.Id,
                 WorkoutsInWeek = appWorkoutDto.Activity.WorkoutsInWeek
             },
-            Exercises = appWorkoutDto.Exercises.Select(e => new ExerciseDto
+            Exercises = appWorkoutDto.Exercises.Select(e => new Models.Exercises.ExerciseDto
             {
                 RestTimer = e.RestTimer,
                 Id = e.Id,

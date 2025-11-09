@@ -13,6 +13,7 @@ interface WorkoutState {
     getWorkout: (workoutId: string) => Promise<void>;
     completeDay: (workoutId: string, performances: any[]) => Promise<void>;
     generateNextWeek: (workoutId: string, performances: any[]) => Promise<void>;
+    fetchWeekSessions: (workoutId: string) => Promise<any>;
     clearError: () => void;
 }
 
@@ -97,6 +98,16 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
             set({workouts, currentWorkout: activeWorkout, isLoading: false});
         } catch (error: any) {
             set({error: error.response?.data?.message || 'Failed to generate next week', isLoading: false});
+            throw error;
+        }
+    },
+
+    fetchWeekSessions: async (workoutId: string) => {
+        try {
+            const response = await apiClient.get(`/average2savage/workout/${workoutId}/week-sessions`);
+            return response.data;
+        } catch (error: any) {
+            console.error('Failed to fetch week sessions:', error);
             throw error;
         }
     },

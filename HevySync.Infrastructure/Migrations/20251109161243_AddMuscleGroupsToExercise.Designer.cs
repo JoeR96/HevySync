@@ -3,6 +3,7 @@ using System;
 using HevySync.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HevySync.Infrastructure.Migrations
 {
     [DbContext(typeof(HevySyncDbContext))]
-    partial class HevySyncDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109161243_AddMuscleGroupsToExercise")]
+    partial class AddMuscleGroupsToExercise
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

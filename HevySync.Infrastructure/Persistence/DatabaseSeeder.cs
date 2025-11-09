@@ -159,6 +159,7 @@ public static class DatabaseSeeder
                 "hevy-squat",
                 RestTimer.Create(180),
                 1, 0, 3, workoutId,
+                MuscleGroup.Chest, null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(140m),
@@ -169,6 +170,7 @@ public static class DatabaseSeeder
                 "hevy-romanian-deadlift",
                 RestTimer.Create(120),
                 1, 1, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -179,6 +181,7 @@ public static class DatabaseSeeder
                 "hevy-leg-press",
                 RestTimer.Create(120),
                 1, 2, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -189,6 +192,7 @@ public static class DatabaseSeeder
                 "hevy-leg-curl",
                 RestTimer.Create(90),
                 1, 3, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -199,6 +203,7 @@ public static class DatabaseSeeder
                 "hevy-calf-raise",
                 RestTimer.Create(60),
                 1, 4, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(12, 15, 20),
@@ -216,6 +221,7 @@ public static class DatabaseSeeder
                 "hevy-bench-press",
                 RestTimer.Create(180),
                 2, 0, 3, workoutId,
+                MuscleGroup.Chest, null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(100m),
@@ -226,6 +232,7 @@ public static class DatabaseSeeder
                 "hevy-incline-db-press",
                 RestTimer.Create(120),
                 2, 1, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -236,6 +243,7 @@ public static class DatabaseSeeder
                 "hevy-cable-fly",
                 RestTimer.Create(90),
                 2, 2, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -246,6 +254,7 @@ public static class DatabaseSeeder
                 "hevy-tricep-pushdown",
                 RestTimer.Create(90),
                 2, 3, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -256,6 +265,7 @@ public static class DatabaseSeeder
                 "hevy-lateral-raise",
                 RestTimer.Create(60),
                 2, 4, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(12, 15, 20),
@@ -273,6 +283,7 @@ public static class DatabaseSeeder
                 "hevy-deadlift",
                 RestTimer.Create(240),
                 3, 0, 3, workoutId,
+                MuscleGroup.Chest, null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(160m),
@@ -283,6 +294,7 @@ public static class DatabaseSeeder
                 "hevy-front-squat",
                 RestTimer.Create(120),
                 3, 1, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(6, 8, 10),
@@ -293,6 +305,7 @@ public static class DatabaseSeeder
                 "hevy-bulgarian-split-squat",
                 RestTimer.Create(90),
                 3, 2, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -303,6 +316,7 @@ public static class DatabaseSeeder
                 "hevy-leg-extension",
                 RestTimer.Create(90),
                 3, 3, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -313,6 +327,7 @@ public static class DatabaseSeeder
                 "hevy-ab-wheel",
                 RestTimer.Create(90),
                 3, 4, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -330,6 +345,7 @@ public static class DatabaseSeeder
                 "hevy-ohp",
                 RestTimer.Create(180),
                 4, 0, 3, workoutId,
+                MuscleGroup.Chest, null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(60m),
@@ -340,6 +356,7 @@ public static class DatabaseSeeder
                 "hevy-pullups",
                 RestTimer.Create(120),
                 4, 1, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(6, 8, 10),
@@ -350,6 +367,7 @@ public static class DatabaseSeeder
                 "hevy-barbell-row",
                 RestTimer.Create(120),
                 4, 2, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -360,6 +378,7 @@ public static class DatabaseSeeder
                 "hevy-face-pull",
                 RestTimer.Create(90),
                 4, 3, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(12, 15, 20),
@@ -370,6 +389,7 @@ public static class DatabaseSeeder
                 "hevy-bicep-curl",
                 RestTimer.Create(90),
                 4, 4, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -387,6 +407,7 @@ public static class DatabaseSeeder
                 "hevy-pause-squat",
                 RestTimer.Create(150),
                 5, 0, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(5, 6, 8),
@@ -397,6 +418,7 @@ public static class DatabaseSeeder
                 "hevy-db-bench",
                 RestTimer.Create(120),
                 5, 1, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -407,6 +429,7 @@ public static class DatabaseSeeder
                 "hevy-lat-pulldown",
                 RestTimer.Create(90),
                 5, 2, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(10, 12, 15),
@@ -417,6 +440,7 @@ public static class DatabaseSeeder
                 "hevy-db-shoulder-press",
                 RestTimer.Create(90),
                 5, 3, 4, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(8, 10, 12),
@@ -427,6 +451,7 @@ public static class DatabaseSeeder
                 "hevy-plank",
                 RestTimer.Create(60),
                 5, 4, 3, workoutId,
+                MuscleGroup.Chest, null,
                 RepsPerSetStrategy.Create(
                     Guid.Empty,
                     RepRange.Create(30, 45, 60),
@@ -435,3 +460,4 @@ public static class DatabaseSeeder
         };
     }
 }
+

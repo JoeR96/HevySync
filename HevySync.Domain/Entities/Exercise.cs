@@ -105,6 +105,8 @@ public sealed class Exercise : Entity<Guid>
             order,
             numberOfSets,
             workoutId,
+            primaryMuscleGroup,
+            secondaryMuscleGroups ?? new List<MuscleGroup>(),
             progressionWithExerciseId);
     }
 }

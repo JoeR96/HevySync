@@ -20,18 +20,18 @@ public class LinearProgressionCalculator : ILinearProgressionCalculator
         CancellationToken cancellationToken = default)
     {
         var sets = new List<Set>();
-        var config = strategy.IsPrimary 
-            ? _options.HypertrophyBlock.Primary 
+        var config = strategy.IsPrimary
+            ? _options.HypertrophyBlock.Primary
             : _options.HypertrophyBlock.Auxiliary;
 
         var weekIndex = activity.Week - 1; // Convert to 0-based index
 
-        // Create working sets
+        // Crea te working sets
         for (var i = 0; i < config.Sets; i++)
         {
             var weight = CalculateWorkingWeight(weekIndex, strategy.IsPrimary, strategy.TrainingMax.Value);
             var reps = config.RepsPerSet[weekIndex];
-            
+
             sets.Add(Set.Create(weight, reps));
         }
 
@@ -47,8 +47,8 @@ public class LinearProgressionCalculator : ILinearProgressionCalculator
 
     private decimal CalculateWorkingWeight(int weekIndex, bool isPrimary, decimal trainingMax)
     {
-        var config = isPrimary 
-            ? _options.HypertrophyBlock.Primary 
+        var config = isPrimary
+            ? _options.HypertrophyBlock.Primary
             : _options.HypertrophyBlock.Auxiliary;
 
         var intensity = config.Intensity[weekIndex];
@@ -85,4 +85,3 @@ public class LiftOptions
     public decimal[] Intensity { get; set; } = Array.Empty<decimal>();
     public int Sets { get; set; }
 }
-

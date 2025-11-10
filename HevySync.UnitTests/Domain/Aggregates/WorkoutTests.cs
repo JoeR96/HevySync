@@ -1,6 +1,7 @@
 using FluentAssertions;
 using HevySync.Domain.Aggregates;
 using HevySync.Domain.Entities;
+using HevySync.Domain.Enums;
 using HevySync.Domain.ValueObjects;
 using NUnit.Framework;
 using InvalidWorkoutException = HevySync.Domain.Aggregates.InvalidWorkoutException;
@@ -23,6 +24,8 @@ public class WorkoutTests
                 "hevy-squat",
                 RestTimer.Create(180),
                 1, 0, 3, workoutId,
+                MuscleGroup.Chest,
+                null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(100m),
@@ -65,6 +68,8 @@ public class WorkoutTests
                 "hevy-squat",
                 RestTimer.Create(180),
                 1, 0, 3, Guid.NewGuid(),
+                MuscleGroup.Chest,
+                null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(100m),
@@ -207,6 +212,8 @@ public class WorkoutTests
                 "hevy-squat",
                 RestTimer.Create(180),
                 1, 0, 3, workoutId,
+                MuscleGroup.Chest,
+                null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(140m),

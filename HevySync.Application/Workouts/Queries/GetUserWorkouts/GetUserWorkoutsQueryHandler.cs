@@ -13,11 +13,20 @@ public sealed class GetUserWorkoutsQueryHandler(IUnitOfWork unitOfWork)
         var workouts = await unitOfWork.Workouts.GetUserWorkoutsWithDetailsAsync(query.UserId, cancellationToken);
         var activities = await unitOfWork.Activities.FindAsync(a => a.UserId == query.UserId, cancellationToken);
 
-        return workouts.Select(workout =>
+        var workoutDtos = new List<WorkoutDto>();
+
+        foreach (var workout in workouts)
         {
             var activity = activities.FirstOrDefault(a => a.WorkoutId == workout.Id);
+            var currentWeek = workout.Activity.Week;
 
-            return new WorkoutDto
+            // Get all planned sets for the current week
+            var weeklyPlans = await unitOfWork.WeeklyExercisePlans
+                .GetPlansForWeekAsync(workout.Id, currentWeek, cancellationToken);
+
+            var plansByExerciseId = weeklyPlans.ToDictionary(p => p.ExerciseId);
+
+            var workoutDto = new WorkoutDto
             {
                 Id = workout.Id,
                 Name = workout.Name.Value,
@@ -31,16 +40,25 @@ public sealed class GetUserWorkoutsQueryHandler(IUnitOfWork unitOfWork)
                     StartedAt = activity?.StartedAt,
                     CompletedAt = activity?.CompletedAt
                 },
-                Exercises = workout.Exercises.Select(e => new ExerciseDto
+                Exercises = workout.Exercises.Select(e =>
                 {
-                    Id = e.Id,
-                    Name = e.Name,
-                    ExerciseTemplateId = e.ExerciseTemplateId,
-                    RestTimer = e.RestTimer,
-                    Day = e.Day,
-                    Order = e.Order,
-                    NumberOfSets = e.NumberOfSets,
-                    Progression = e.Progression switch
+                    // Get planned sets for this exercise
+                    plansByExerciseId.TryGetValue(e.Id, out var plan);
+                    var plannedSets = plan?.PlannedSets
+                        .Select(s => new SetDto { WeightKg = s.WeightKg, Reps = s.Reps })
+                        .ToList();
+
+                    return new ExerciseDto
+                    {
+                        Id = e.Id,
+                        Name = e.Name,
+                        ExerciseTemplateId = e.ExerciseTemplateId,
+                        RestTimer = e.RestTimer,
+                        Day = e.Day,
+                        Order = e.Order,
+                        NumberOfSets = e.NumberOfSets,
+                        PlannedSets = plannedSets,
+                        Progression = e.Progression switch
                     {
                         LinearProgressionStrategy lp => new LinearProgressionDto
                         {
@@ -65,8 +83,13 @@ public sealed class GetUserWorkoutsQueryHandler(IUnitOfWork unitOfWork)
                         },
                         _ => throw new InvalidOperationException($"Unknown progression type: {e.Progression.GetType().Name}")
                     }
+                    };
                 }).ToList()
             };
-        }).ToList();
+
+            workoutDtos.Add(workoutDto);
+        }
+
+        return workoutDtos;
     }
 }

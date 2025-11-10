@@ -149,6 +149,80 @@ namespace HevySync.Infrastructure.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("HevySync.Domain.Entities.SessionExercisePerformance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("WorkoutSessionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkoutSessionId");
+
+                    b.ToTable("SessionExercisePerformances", (string)null);
+                });
+
+            modelBuilder.Entity("HevySync.Domain.Entities.WeeklyExercisePlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Week")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId", "Week")
+                        .IsUnique();
+
+                    b.HasIndex("WorkoutId", "Week");
+
+                    b.ToTable("WeeklyExercisePlans", (string)null);
+                });
+
+            modelBuilder.Entity("HevySync.Domain.Entities.WorkoutSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Week")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("WorkoutId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkoutId", "Week", "Day");
+
+                    b.ToTable("WorkoutSessions", (string)null);
+                });
+
             modelBuilder.Entity("HevySync.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -439,6 +513,72 @@ namespace HevySync.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HevySync.Domain.Entities.SessionExercisePerformance", b =>
+                {
+                    b.HasOne("HevySync.Domain.Entities.WorkoutSession", null)
+                        .WithMany("_exercisePerformances")
+                        .HasForeignKey("WorkoutSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("HevySync.Domain.ValueObjects.Set", "_completedSets", b1 =>
+                        {
+                            b1.Property<Guid>("SessionExercisePerformanceId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Reps")
+                                .HasColumnType("integer");
+
+                            b1.Property<decimal>("WeightKg")
+                                .HasColumnType("decimal(5, 2)");
+
+                            b1.HasKey("SessionExercisePerformanceId", "__synthesizedOrdinal");
+
+                            b1.ToTable("SessionExercisePerformances");
+
+                            b1.ToJson("CompletedSets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SessionExercisePerformanceId");
+                        });
+
+                    b.Navigation("_completedSets");
+                });
+
+            modelBuilder.Entity("HevySync.Domain.Entities.WeeklyExercisePlan", b =>
+                {
+                    b.OwnsMany("HevySync.Domain.ValueObjects.Set", "_plannedSets", b1 =>
+                        {
+                            b1.Property<Guid>("WeeklyExercisePlanId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Reps")
+                                .HasColumnType("integer");
+
+                            b1.Property<decimal>("WeightKg")
+                                .HasColumnType("decimal(5, 2)");
+
+                            b1.HasKey("WeeklyExercisePlanId", "__synthesizedOrdinal");
+
+                            b1.ToTable("WeeklyExercisePlans");
+
+                            b1.ToJson("PlannedSets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WeeklyExercisePlanId");
+                        });
+
+                    b.Navigation("_plannedSets");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -530,6 +670,11 @@ namespace HevySync.Infrastructure.Migrations
                 {
                     b.Navigation("Progression")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HevySync.Domain.Entities.WorkoutSession", b =>
+                {
+                    b.Navigation("_exercisePerformances");
                 });
 #pragma warning restore 612, 618
         }

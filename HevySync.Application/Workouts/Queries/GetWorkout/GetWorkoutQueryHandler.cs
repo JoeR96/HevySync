@@ -15,6 +15,14 @@ public sealed class GetWorkoutQueryHandler(IUnitOfWork unitOfWork) : IRequestHan
         if (workout == null)
             return null;
 
+        var currentWeek = workout.Activity.Week;
+
+        // Get all planned sets for the current week
+        var weeklyPlans = await unitOfWork.WeeklyExercisePlans
+            .GetPlansForWeekAsync(workout.Id, currentWeek, cancellationToken);
+
+        var plansByExerciseId = weeklyPlans.ToDictionary(p => p.ExerciseId);
+
         return new WorkoutDto
         {
             Id = workout.Id,
@@ -26,16 +34,25 @@ public sealed class GetWorkoutQueryHandler(IUnitOfWork unitOfWork) : IRequestHan
                 Day = workout.Activity.Day,
                 WorkoutsInWeek = workout.Activity.WorkoutsInWeek
             },
-            Exercises = workout.Exercises.Select(e => new ExerciseDto
+            Exercises = workout.Exercises.Select(e =>
             {
-                Id = e.Id,
-                Name = e.Name,
-                ExerciseTemplateId = e.ExerciseTemplateId,
-                RestTimer = e.RestTimer,
-                Day = e.Day,
-                Order = e.Order,
-                NumberOfSets = e.NumberOfSets,
-                Progression = e.Progression switch
+                // Get planned sets for this exercise
+                plansByExerciseId.TryGetValue(e.Id, out var plan);
+                var plannedSets = plan?.PlannedSets
+                    .Select(s => new SetDto { WeightKg = s.WeightKg, Reps = s.Reps })
+                    .ToList();
+
+                return new ExerciseDto
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    ExerciseTemplateId = e.ExerciseTemplateId,
+                    RestTimer = e.RestTimer,
+                    Day = e.Day,
+                    Order = e.Order,
+                    NumberOfSets = e.NumberOfSets,
+                    PlannedSets = plannedSets,
+                    Progression = e.Progression switch
                 {
                     LinearProgressionStrategy lp => new LinearProgressionDto
                     {
@@ -60,6 +77,7 @@ public sealed class GetWorkoutQueryHandler(IUnitOfWork unitOfWork) : IRequestHan
                     },
                     _ => throw new InvalidOperationException($"Unknown progression type: {e.Progression.GetType().Name}")
                 }
+                };
             }).ToList()
         };
     }

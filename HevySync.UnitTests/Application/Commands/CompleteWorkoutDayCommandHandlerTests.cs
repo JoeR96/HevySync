@@ -1,7 +1,9 @@
 using FluentAssertions;
 using HevySync.Application.Workouts.Commands.CompleteWorkoutDay;
 using HevySync.Domain.Aggregates;
+using HevySync.Domain.DomainServices;
 using HevySync.Domain.Entities;
+using HevySync.Domain.Enums;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
 using Moq;
@@ -14,19 +16,30 @@ namespace HevySync.UnitTests.Application.Commands;
 public class CompleteWorkoutDayCommandHandlerTests
 {
     private Mock<IUnitOfWork> _unitOfWorkMock = null!;
+    private Mock<ISetGenerationService> _setGenerationServiceMock = null!;
     private CompleteWorkoutDayCommandHandler _handler = null!;
 
     [SetUp]
     public void SetUp()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        var workoutRepoMock = new Mock<IRepository<Workout, Guid>>();
+        _setGenerationServiceMock = new Mock<ISetGenerationService>();
+        var workoutRepoMock = new Mock<IWorkoutRepository>();
         var activityRepoMock = new Mock<IRepository<Activity, Guid>>();
+        var weeklyExercisePlanRepoMock = new Mock<IWeeklyExercisePlanRepository>();
+        var workoutSessionRepoMock = new Mock<IWorkoutSessionRepository>();
 
         _unitOfWorkMock.Setup(x => x.Workouts).Returns(workoutRepoMock.Object);
         _unitOfWorkMock.Setup(x => x.Activities).Returns(activityRepoMock.Object);
+        _unitOfWorkMock.Setup(x => x.WeeklyExercisePlans).Returns(weeklyExercisePlanRepoMock.Object);
+        _unitOfWorkMock.Setup(x => x.WorkoutSessions).Returns(workoutSessionRepoMock.Object);
 
-        _handler = new CompleteWorkoutDayCommandHandler(_unitOfWorkMock.Object);
+        // Setup default behavior for set generation service
+        _setGenerationServiceMock
+            .Setup(x => x.GenerateWeekOneSetsAsync(It.IsAny<ExerciseProgression>(), It.IsAny<WorkoutActivity>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Set> { Set.Create(100m, 5), Set.Create(100m, 5), Set.Create(100m, 5) });
+
+        _handler = new CompleteWorkoutDayCommandHandler(_unitOfWorkMock.Object, _setGenerationServiceMock.Object);
     }
 
     [Test]
@@ -170,6 +183,8 @@ public class CompleteWorkoutDayCommandHandlerTests
                 "hevy-squat",
                 RestTimer.Create(180),
                 1, 0, 3, workoutId,
+                MuscleGroup.Chest,
+                null,
                 LinearProgressionStrategy.Create(
                     Guid.Empty,
                     TrainingMax.Create(140m),

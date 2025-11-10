@@ -48,3 +48,50 @@ export interface GenerateNextWeekRequest {
 }
 
 export type WeekOneSessionsDto = Record<number, SessionExerciseDto[]>;
+
+export interface SetDto {
+    WeightKg: number;
+    Reps: number;
+}
+
+export interface SessionExercisePerformanceDto {
+    Id: string;
+    ExerciseId: string;
+    ExerciseName: string;
+    ExerciseTemplateId: string;
+    PerformanceResult: string;
+    CompletedSets: SetDto[];
+}
+
+export interface WorkoutSessionDto {
+    Id: string;
+    WorkoutId: string;
+    Week: number;
+    Day: number;
+    CompletedAt: string;
+    ExercisePerformances: SessionExercisePerformanceDto[];
+}
+
+export type WeekSessionsDto = Record<number, WorkoutSessionDto[]>;
+
+export interface PlannedExerciseDto {
+    Id: string;
+    Name: string;
+    ExerciseTemplateId: string;
+    RestTimer: number;
+    Day: number;
+    Order: number;
+    NumberOfSets: number;
+    Progression: any;
+    PlannedSets: SetDto[];
+    IsCompleted: boolean;
+}
+
+export interface CurrentWeekPlannedExercisesDto {
+    WorkoutId: string;
+    WorkoutName: string;
+    Week: number;
+    CurrentDay: number;
+    TotalDaysInWeek: number;
+    ExercisesByDay: Record<number, PlannedExerciseDto[]>;
+}

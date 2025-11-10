@@ -43,6 +43,12 @@ export interface ExerciseDto {
   Order: number;
   NumberOfSets: number;
   ExerciseDetail: ExerciseProgressionDto;
+  PlannedSets?: PlannedSetDto[];
+}
+
+export interface PlannedSetDto {
+  WeightKg: number;
+  Reps: number;
 }
 
 export type ExerciseProgressionDto = LinearProgressionDto | RepsPerSetDto;

@@ -15,6 +15,9 @@ public class HevySyncDbContext(DbContextOptions<HevySyncDbContext> options)
     public DbSet<Exercise> Exercises { get; set; } = null!;
     public DbSet<ExerciseProgression> ExerciseProgressions { get; set; } = null!;
     public DbSet<Activity> Activities { get; set; } = null!;
+    public DbSet<WorkoutSession> WorkoutSessions { get; set; } = null!;
+    public DbSet<SessionExercisePerformance> SessionExercisePerformances { get; set; } = null!;
+    public DbSet<WeeklyExercisePlan> WeeklyExercisePlans { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +29,9 @@ public class HevySyncDbContext(DbContextOptions<HevySyncDbContext> options)
         modelBuilder.ApplyConfiguration(new LinearProgressionStrategyConfiguration());
         modelBuilder.ApplyConfiguration(new RepsPerSetStrategyConfiguration());
         modelBuilder.ApplyConfiguration(new ActivityConfiguration());
+        modelBuilder.ApplyConfiguration(new WorkoutSessionConfiguration());
+        modelBuilder.ApplyConfiguration(new SessionExercisePerformanceConfiguration());
+        modelBuilder.ApplyConfiguration(new WeeklyExercisePlanConfiguration());
     }
 }
 

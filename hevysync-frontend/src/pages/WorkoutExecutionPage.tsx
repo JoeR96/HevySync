@@ -66,6 +66,15 @@ export default function WorkoutExecutionPage() {
   }, [activeTimer, timeRemaining]);
 
   const generateSuggestedSets = (exercise: ExerciseDto): CompletedSetDto[] => {
+    // Use PlannedSets if available from the backend
+    if (exercise.PlannedSets && exercise.PlannedSets.length > 0) {
+      return exercise.PlannedSets.map(set => ({
+        WeightKg: set.WeightKg,
+        Reps: set.Reps
+      }));
+    }
+
+    // Fallback to generating sets if PlannedSets not available
     const sets: CompletedSetDto[] = [];
 
     if (exercise.ExerciseDetail.Program === ExerciseProgram.Average2SavageRepsPerSet) {

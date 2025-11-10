@@ -18,10 +18,34 @@ public static class DatabaseSeeder
         const string demoPassword = "DemoPass123#";
 
         var existingUser = await userManager.FindByEmailAsync(demoEmail);
-        if (existingUser != null)
-            return;
 
-        var demoUser = new ApplicationUser
+        ApplicationUser demoUser;
+        if (existingUser != null)
+        {
+            demoUser = existingUser;
+
+            // Check if workouts exist but sessions don't - this happens when user existed before migration
+            var hasWorkouts = await context.Workouts.AnyAsync(w => w.UserId == demoUser.Id);
+            var hasSessions = await context.WorkoutSessions.AnyAsync();
+            var hasWeeklyPlans = await context.WeeklyExercisePlans.AnyAsync();
+
+            if (hasWorkouts && !hasSessions)
+            {
+                // Re-seed the workout sessions for existing workouts
+                await SeedWorkoutSessionsForExistingWorkouts(context, demoUser.Id);
+                await context.SaveChangesAsync();
+            }
+
+            if (hasWorkouts && !hasWeeklyPlans)
+            {
+                // Re-seed the weekly exercise plans for existing workouts
+                await SeedWeeklyExercisePlansForExistingWorkouts(context, demoUser.Id);
+                await context.SaveChangesAsync();
+            }
+            return;
+        }
+
+        demoUser = new ApplicationUser
         {
             UserName = demoEmail,
             Email = demoEmail,
@@ -44,6 +68,7 @@ public static class DatabaseSeeder
         var exercises = CreateFiveDayWorkoutExercises(Guid.NewGuid(), completed: true);
 
         var completedWorkout = Workout.Create(workoutName, userId, 5, exercises);
+        var workoutSessions = new List<WorkoutSession>();
 
         for (int week = 1; week <= 21; week++)
         {
@@ -57,6 +82,15 @@ public static class DatabaseSeeder
                         .ToList();
                     return ExercisePerformance.Create(e.Id, mockSets, PerformanceResult.Success);
                 }).ToList();
+
+                // Create a workout session for this completed day
+                var session = WorkoutSession.Create(
+                    completedWorkout.Id,
+                    week,
+                    day,
+                    DateTimeOffset.UtcNow.AddDays(-(21 - week) * 7 - (5 - day)), // Past dates
+                    performances);
+                workoutSessions.Add(session);
 
                 completedWorkout.CompleteDay(performances);
             }
@@ -80,6 +114,7 @@ public static class DatabaseSeeder
 
         await context.Workouts.AddAsync(completedWorkout);
         await context.Activities.AddAsync(completedActivity);
+        await context.WorkoutSessions.AddRangeAsync(workoutSessions);
     }
 
     private static async Task SeedCurrentWorkoutAsync(HevySyncDbContext context, Guid userId)
@@ -89,6 +124,7 @@ public static class DatabaseSeeder
         var exercises = CreateFiveDayWorkoutExercises(workoutId, completed: false);
 
         var currentWorkout = Workout.Create(workoutName, userId, 5, exercises);
+        var workoutSessions = new List<WorkoutSession>();
 
         for (int week = 1; week < 11; week++)
         {
@@ -102,6 +138,15 @@ public static class DatabaseSeeder
                         .ToList();
                     return ExercisePerformance.Create(e.Id, mockSets, PerformanceResult.Success);
                 }).ToList();
+
+                // Create a workout session for this completed day
+                var session = WorkoutSession.Create(
+                    currentWorkout.Id,
+                    week,
+                    day,
+                    DateTimeOffset.UtcNow.AddDays(-(11 - week) * 7 - (5 - day)), // Past dates
+                    performances);
+                workoutSessions.Add(session);
 
                 currentWorkout.CompleteDay(performances);
             }
@@ -128,6 +173,15 @@ public static class DatabaseSeeder
                 return ExercisePerformance.Create(e.Id, mockSets, PerformanceResult.Success);
             }).ToList();
 
+            // Create a workout session for this completed day (current week 11)
+            var session = WorkoutSession.Create(
+                currentWorkout.Id,
+                11,
+                day,
+                DateTimeOffset.UtcNow.AddDays(-day),
+                performances);
+            workoutSessions.Add(session);
+
             currentWorkout.CompleteDay(performances);
         }
 
@@ -135,6 +189,146 @@ public static class DatabaseSeeder
 
         await context.Workouts.AddAsync(currentWorkout);
         await context.Activities.AddAsync(activeActivity);
+        await context.WorkoutSessions.AddRangeAsync(workoutSessions);
+    }
+
+    private static async Task SeedWorkoutSessionsForExistingWorkouts(HevySyncDbContext context, Guid userId)
+    {
+        // Get existing workouts
+        var workouts = await context.Workouts
+            .Include(w => w.Exercises)
+            .Where(w => w.UserId == userId)
+            .ToListAsync();
+
+        foreach (var workout in workouts)
+        {
+            var currentActivity = await context.Activities
+                .FirstOrDefaultAsync(a => a.WorkoutId == workout.Id && a.Status != ActivityStatus.Completed);
+
+            if (currentActivity == null)
+                continue;
+
+            // Determine how many weeks to generate based on current week
+            var currentWeek = workout.Activity.Week;
+            var currentDay = workout.Activity.Day;
+            var workoutSessions = new List<WorkoutSession>();
+
+            // Generate sessions for completed days (all weeks before current, and days before current in current week)
+            for (int week = 1; week <= currentWeek; week++)
+            {
+                var daysInWeek = week < currentWeek ? workout.Activity.WorkoutsInWeek : currentDay - 1;
+
+                for (int day = 1; day <= daysInWeek; day++)
+                {
+                    var dayExercises = workout.GetExercisesForDay(day);
+                    var performances = dayExercises.Select(e =>
+                    {
+                        var mockSets = Enumerable.Range(1, e.NumberOfSets)
+                            .Select(_ => Set.Create(100m, 10))
+                            .ToList();
+                        return ExercisePerformance.Create(e.Id, mockSets, PerformanceResult.Success);
+                    }).ToList();
+
+                    var daysAgo = (currentWeek - week) * workout.Activity.WorkoutsInWeek + (currentDay - day);
+                    var session = WorkoutSession.Create(
+                        workout.Id,
+                        week,
+                        day,
+                        DateTimeOffset.UtcNow.AddDays(-daysAgo),
+                        performances);
+                    workoutSessions.Add(session);
+                }
+            }
+
+            if (workoutSessions.Any())
+            {
+                await context.WorkoutSessions.AddRangeAsync(workoutSessions);
+            }
+        }
+    }
+
+    private static async Task SeedWeeklyExercisePlansForExistingWorkouts(HevySyncDbContext context, Guid userId)
+    {
+        // Get existing workouts
+        var workouts = await context.Workouts
+            .Where(w => w.UserId == userId)
+            .ToListAsync();
+
+        foreach (var workout in workouts)
+        {
+            var currentActivity = await context.Activities
+                .FirstOrDefaultAsync(a => a.WorkoutId == workout.Id && a.Status != ActivityStatus.Completed);
+
+            if (currentActivity == null)
+                continue;
+
+            var currentWeek = workout.Activity.Week;
+
+            // Get all exercises for this workout directly from context
+            var exercises = await context.Exercises
+                .Where(e => e.WorkoutId == workout.Id)
+                .ToListAsync();
+
+            // Load progressions for each exercise
+            foreach (var exercise in exercises)
+            {
+                await context.Entry(exercise)
+                    .Reference(e => e.Progression)
+                    .LoadAsync();
+            }
+
+            // Generate planned sets for all exercises in the current week
+            var weeklyPlans = new List<WeeklyExercisePlan>();
+
+            foreach (var exercise in exercises)
+            {
+                // Generate sets based on progression type
+                var plannedSets = GeneratePlannedSets(exercise, currentWeek);
+
+                var plan = WeeklyExercisePlan.Create(
+                    workout.Id,
+                    exercise.Id,
+                    currentWeek,
+                    plannedSets);
+
+                weeklyPlans.Add(plan);
+            }
+
+            if (weeklyPlans.Any())
+            {
+                await context.WeeklyExercisePlans.AddRangeAsync(weeklyPlans);
+            }
+        }
+    }
+
+    private static List<Set> GeneratePlannedSets(Exercise exercise, int week)
+    {
+        var sets = new List<Set>();
+
+        switch (exercise.Progression)
+        {
+            case LinearProgressionStrategy lp:
+                // Generate AMRAP sets for linear progression
+                var percentage = week == 1 ? 0.85m : 0.85m + ((week - 1) * 0.025m);
+                var workingWeight = Math.Round(lp.TrainingMax.Value * percentage / 2.5m) * 2.5m;
+
+                for (int i = 0; i < exercise.NumberOfSets; i++)
+                {
+                    var reps = i == exercise.NumberOfSets - 1 ? 12 : 5; // Last set is AMRAP, estimate 12 reps
+                    sets.Add(Set.Create(workingWeight, reps));
+                }
+                break;
+
+            case RepsPerSetStrategy rps:
+                // Generate sets based on rep range
+                for (int i = 0; i < exercise.NumberOfSets; i++)
+                {
+                    sets.Add(Set.Create(rps.StartingWeight, rps.RepRange.TargetReps));
+                }
+                break;
+        }
+
+        return sets;
     }
 
     private static List<Exercise> CreateFiveDayWorkoutExercises(Guid workoutId, bool completed)

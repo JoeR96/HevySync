@@ -5,6 +5,11 @@ using HevySync.Application.Workouts.Commands.CreateWorkout;
 using HevySync.Application.Workouts.Commands.GenerateNextWeek;
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
 using HevySync.Application.Workouts.Queries.GetUserWorkouts;
+using HevySync.Application.Workouts.Queries.GetWorkoutHistory;
+using HevySync.Application.Workouts.Queries.GetWorkoutSession;
+using HevySync.Application.Workouts.Queries.GetWorkoutWeekSessions;
+using HevySync.Application.Workouts.Queries.GetCurrentCycleWeekSessions;
+using HevySync.Application.Workouts.Queries.GetCurrentWeekPlannedExercises;
 using HevySync.Endpoints.Average2Savage.Enums;
 using HevySync.Endpoints.Average2Savage.Requests;
 using HevySync.Endpoints.Average2Savage.Responses;
@@ -41,16 +46,64 @@ internal static class Average2SavageHandler
 
         routes.MapGet("/workout/{workoutId:guid}/week-sessions", GetWorkoutWeekSessions)
             .RequireAuthorization();
+
+        routes.MapGet("/current-cycle/week-sessions", GetCurrentCycleWeekSessions)
+            .RequireAuthorization();
+
+        routes.MapGet("/current-week/planned-exercises", GetCurrentWeekPlannedExercises)
+            .RequireAuthorization();
+
+        routes.MapGet("/workout/{workoutId:guid}/session/{week:int}/{day:int}", GetWorkoutSession)
+            .RequireAuthorization();
+
+        routes.MapGet("/workout/{workoutId:guid}/history", GetWorkoutHistory)
+            .RequireAuthorization();
     }
     
     private static async Task<IResult> GetWorkoutWeekSessions(
         [FromRoute] Guid workoutId,
         [FromServices] IMediator mediator)
     {
-        var command = new GenerateWeekOneCommand(workoutId);
-        var sessions = await mediator.Send(command);
-        
+        var query = new GetWorkoutWeekSessionsQuery(workoutId);
+        var sessions = await mediator.Send(query);
+
         return Results.Ok(sessions);
+    }
+
+    private static async Task<IResult> GetCurrentCycleWeekSessions(
+        ClaimsPrincipal userPrincipal,
+        UserManager<ApplicationUser> userManager,
+        [FromServices] IMediator mediator)
+    {
+        var user = await userManager.GetUserAsync(userPrincipal);
+        if (user == null)
+            return Results.Unauthorized();
+
+        var query = new GetCurrentCycleWeekSessionsQuery(user.Id);
+        var sessions = await mediator.Send(query);
+
+        if (sessions == null)
+            return Results.NotFound(new { message = "No active workout found" });
+
+        return Results.Ok(sessions);
+    }
+
+    private static async Task<IResult> GetCurrentWeekPlannedExercises(
+        ClaimsPrincipal userPrincipal,
+        UserManager<ApplicationUser> userManager,
+        [FromServices] IMediator mediator)
+    {
+        var user = await userManager.GetUserAsync(userPrincipal);
+        if (user == null)
+            return Results.Unauthorized();
+
+        var query = new GetCurrentWeekPlannedExercisesQuery(user.Id);
+        var plannedExercises = await mediator.Send(query);
+
+        if (plannedExercises == null)
+            return Results.NotFound(new { message = "No active workout found" });
+
+        return Results.Ok(plannedExercises);
     }
 
     private static async Task<IResult> GetUserWorkouts(
@@ -322,5 +375,30 @@ internal static class Average2SavageHandler
         var result = await mediator.Send(command);
 
         return Results.Ok(result);
+    }
+
+    private static async Task<IResult> GetWorkoutSession(
+        [FromRoute] Guid workoutId,
+        [FromRoute] int week,
+        [FromRoute] int day,
+        [FromServices] IMediator mediator)
+    {
+        var query = new GetWorkoutSessionQuery(workoutId, week, day);
+        var session = await mediator.Send(query);
+
+        if (session == null)
+            return Results.NotFound();
+
+        return Results.Ok(session);
+    }
+
+    private static async Task<IResult> GetWorkoutHistory(
+        [FromRoute] Guid workoutId,
+        [FromServices] IMediator mediator)
+    {
+        var query = new GetWorkoutHistoryQuery(workoutId);
+        var history = await mediator.Send(query);
+
+        return Results.Ok(history);
     }
 }

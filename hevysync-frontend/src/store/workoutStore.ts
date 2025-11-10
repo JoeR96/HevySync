@@ -1,12 +1,15 @@
 import {create} from 'zustand';
 import {apiClient} from '../api/client';
-import type {WorkoutDto} from '../types/workout';
+import type {WorkoutDto, WeekSessionsDto, CurrentWeekPlannedExercisesDto} from '../types/workout';
 import type {CreateWorkoutRequest} from "../types/workout.ts";
 
 interface WorkoutState {
     currentWorkout: WorkoutDto | null;
     workouts: WorkoutDto[];
+    weekSessions: WeekSessionsDto | null;
+    currentWeekPlanned: CurrentWeekPlannedExercisesDto | null;
     isLoading: boolean;
+    isLoadingPlanned: boolean; // Dedicated loading state for planned exercises
     error: string | null;
     fetchWorkouts: () => Promise<void>;
     createWorkout: (workout: CreateWorkoutRequest) => Promise<WorkoutDto>;
@@ -14,13 +17,18 @@ interface WorkoutState {
     completeDay: (workoutId: string, performances: any[]) => Promise<void>;
     generateNextWeek: (workoutId: string, performances: any[]) => Promise<void>;
     fetchWeekSessions: (workoutId: string) => Promise<any>;
+    fetchCurrentCycleWeekSessions: () => Promise<void>;
+    fetchCurrentWeekPlannedExercises: () => Promise<void>;
     clearError: () => void;
 }
 
 export const useWorkoutStore = create<WorkoutState>((set) => ({
     currentWorkout: null,
     workouts: [],
+    weekSessions: null,
+    currentWeekPlanned: null,
     isLoading: false,
+    isLoadingPlanned: false,
     error: null,
 
     fetchWorkouts: async () => {
@@ -108,6 +116,38 @@ export const useWorkoutStore = create<WorkoutState>((set) => ({
             return response.data;
         } catch (error: any) {
             console.error('Failed to fetch week sessions:', error);
+            throw error;
+        }
+    },
+
+    fetchCurrentCycleWeekSessions: async () => {
+        set({isLoading: true, error: null});
+        try {
+            const response = await apiClient.get<WeekSessionsDto>('/average2savage/current-cycle/week-sessions');
+            set({weekSessions: response.data, isLoading: false});
+        } catch (error: any) {
+            set({error: error.response?.data?.message || 'Failed to fetch week sessions', isLoading: false});
+            throw error;
+        }
+    },
+
+    fetchCurrentWeekPlannedExercises: async () => {
+        // Prevent duplicate fetches while already loading
+        const currentState = useWorkoutStore.getState();
+        if (currentState.isLoadingPlanned) {
+            console.log('Already loading planned exercises, skipping fetch');
+            return;
+        }
+
+        console.log('Fetching current week planned exercises...');
+        set({isLoadingPlanned: true, error: null});
+        try {
+            const response = await apiClient.get<CurrentWeekPlannedExercisesDto>('/average2savage/current-week/planned-exercises');
+            console.log('Successfully fetched planned exercises:', response.data);
+            set({currentWeekPlanned: response.data, isLoadingPlanned: false});
+        } catch (error: any) {
+            console.error('Failed to fetch planned exercises:', error);
+            set({error: error.response?.data?.message || 'Failed to fetch current week planned exercises', isLoadingPlanned: false});
             throw error;
         }
     },

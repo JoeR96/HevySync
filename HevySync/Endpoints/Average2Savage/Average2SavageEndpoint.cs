@@ -5,5 +5,10 @@ public enum Average2SavageEndpoint
     Workout,
     WorkoutCreateWeekOne,
     WorkoutCompleteDay,
-    WorkoutGenerateNextWeek
+    WorkoutGenerateNextWeek,
+    WorkoutWeekSessions,
+    CurrentCycleWeekSessions,
+    CurrentWeekPlannedExercises,
+    WorkoutSession,
+    WorkoutHistory
 }

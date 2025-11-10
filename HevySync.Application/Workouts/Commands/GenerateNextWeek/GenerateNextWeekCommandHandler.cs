@@ -1,5 +1,6 @@
 using HevySync.Application.Workouts.Commands.GenerateWeekOne;
 using HevySync.Domain.DomainServices;
+using HevySync.Domain.Entities;
 using HevySync.Domain.Repositories;
 using HevySync.Domain.ValueObjects;
 using MediatR;
@@ -33,7 +34,39 @@ public sealed class GenerateNextWeekCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var weekSessions = new Dictionary<int, List<SessionExerciseDto>>();
+        var currentWeek = workout.Activity.Week;
 
+        // Generate and persist planned sets for all exercises in the current week
+        foreach (var exercise in workout.Exercises)
+        {
+            var sets = await setGenerationService.GenerateWeekOneSetsAsync(
+                exercise.Progression,
+                workout.Activity,
+                cancellationToken);
+
+            // Create or update the weekly exercise plan
+            var existingPlan = await unitOfWork.WeeklyExercisePlans
+                .GetPlanForExerciseAsync(exercise.Id, currentWeek, cancellationToken);
+
+            if (existingPlan != null)
+            {
+                existingPlan.UpdatePlannedSets(sets.ToList());
+                unitOfWork.WeeklyExercisePlans.Update(existingPlan);
+            }
+            else
+            {
+                var plan = WeeklyExercisePlan.Create(
+                    workout.Id,
+                    exercise.Id,
+                    currentWeek,
+                    sets.ToList());
+                await unitOfWork.WeeklyExercisePlans.AddAsync(plan, cancellationToken);
+            }
+        }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Group exercises by day for response
         for (int day = 1; day <= workout.Activity.WorkoutsInWeek; day++)
         {
             var exercisesForDay = workout.GetExercisesForDay(day);
@@ -41,16 +74,17 @@ public sealed class GenerateNextWeekCommandHandler(
 
             foreach (var exercise in exercisesForDay)
             {
-                var sets = await setGenerationService.GenerateWeekOneSetsAsync(
-                    exercise.Progression,
-                    workout.Activity,
-                    cancellationToken);
+                var plan = await unitOfWork.WeeklyExercisePlans
+                    .GetPlanForExerciseAsync(exercise.Id, currentWeek, cancellationToken);
+
+                var sets = plan?.PlannedSets.Select(s => new SessionSetDto(s.WeightKg, s.Reps)).ToList()
+                    ?? new List<SessionSetDto>();
 
                 sessionExercises.Add(new SessionExerciseDto(
                     exercise.ExerciseTemplateId,
                     exercise.RestTimer.Seconds,
                     string.Empty,
-                    sets.Select(s => new SessionSetDto(s.WeightKg, s.Reps)).ToList()));
+                    sets));
             }
 
             weekSessions[day] = sessionExercises;

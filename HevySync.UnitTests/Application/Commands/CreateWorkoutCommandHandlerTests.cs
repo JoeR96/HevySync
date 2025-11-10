@@ -17,7 +17,7 @@ public class CreateWorkoutCommandHandlerTests
     public void SetUp()
     {
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        var workoutRepoMock = new Mock<IRepository<Workout, Guid>>();
+        var workoutRepoMock = new Mock<IWorkoutRepository>();
         var activityRepoMock = new Mock<IRepository<Activity, Guid>>();
 
         _unitOfWorkMock.Setup(x => x.Workouts).Returns(workoutRepoMock.Object);
